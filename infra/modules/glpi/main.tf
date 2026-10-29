@@ -13,6 +13,7 @@ resource "azurerm_role_assignment" "key_vault_secrets_user" {
 }
 
 resource "azurerm_key_vault_secret" "database_password" {
+  #checkov:skip=CKV_AZURE_41:Database password rotation is coordinated with the GLPI database and application deployment.
   name         = "glpi-database-password"
   value        = var.database_password
   key_vault_id = var.key_vault_id
@@ -20,6 +21,14 @@ resource "azurerm_key_vault_secret" "database_password" {
 }
 
 resource "azurerm_storage_account" "files" {
+  #checkov:skip=CKV_AZURE_206:LRS is an explicit cost choice for this personal lab; backups are handled at the application/database layer.
+  #checkov:skip=CKV_AZURE_33:Queue logging is irrelevant because this account is used only for Azure Files.
+  #checkov:skip=CKV_AZURE_59:Container Apps Azure Files requires a reachable storage endpoint; access requires the storage key and the share is not public.
+  #checkov:skip=CKV2_AZURE_40:Container Apps Azure Files integration requires shared-key authorization for the environment storage binding.
+  #checkov:skip=CKV2_AZURE_38:Soft delete is not supported for Azure Files through this provider configuration; the database and app data are separately backed up.
+  #checkov:skip=CKV2_AZURE_41:SAS expiration policy is not used because the workload authenticates with the storage account key.
+  #checkov:skip=CKV2_AZURE_33:Private endpoint would require additional Container Apps storage networking and is excluded from this cost-controlled lab.
+  #checkov:skip=CKV2_AZURE_1:Microsoft-managed encryption is proportionate for this lab; customer-managed keys would add bootstrap complexity and cost.
   name                            = var.storage_account_name
   resource_group_name             = var.resource_group_name
   location                        = var.location

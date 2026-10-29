@@ -1,5 +1,7 @@
 resource "azurerm_mysql_flexible_server" "main" {
   #checkov:skip=CKV_AZURE_136:Geo-redundant backup is intentionally excluded from this cost-controlled lab.
+  #checkov:skip=CKV_AZURE_94:Geo-redundant backup is intentionally excluded from this cost-controlled lab.
+  #checkov:skip=CKV2_AZURE_56:Private delegated subnet and private DNS provide private access; a separate Private Link endpoint is not applicable.
   name                         = var.name
   resource_group_name          = var.resource_group_name
   location                     = var.location
