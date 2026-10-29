@@ -146,7 +146,7 @@ resource "azurerm_container_app" "main" {
 
       volume_mounts {
         name = "glpi-data"
-        path = "/var/glpi"
+        path = "/var/glpi/files"
       }
 
     }
