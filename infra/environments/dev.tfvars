@@ -5,7 +5,7 @@ location    = "UK South"
 resource_suffix = ""
 
 enable_glpi            = true
-glpi_database_location = "North Europe"
+glpi_database_location = "East US"
 
 # GoDaddy remains the registrar; Azure DNS becomes authoritative after the
 # first apply returns the four Azure nameservers.
