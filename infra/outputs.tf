@@ -47,3 +47,13 @@ output "dns_name_servers" {
   description = "Azure DNS nameservers to configure at an external registrar. Empty when domain_name is unset."
   value       = module.dns.dns_zone_name_servers
 }
+
+output "glpi_application_url" {
+  description = "GLPI ticketing URL."
+  value       = var.enable_glpi ? module.glpi[0].application_url : null
+}
+
+output "glpi_container_app_fqdn" {
+  description = "Default GLPI Container Apps hostname."
+  value       = var.enable_glpi ? module.glpi[0].container_app_fqdn : null
+}

@@ -52,6 +52,22 @@ resource "azurerm_subnet" "database" {
   }
 }
 
+resource "azurerm_subnet" "glpi_database" {
+  name                 = "${var.name_prefix}-glpi-db-snet"
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = azurerm_virtual_network.main.name
+  address_prefixes     = ["10.20.5.0/24"]
+
+  delegation {
+    name = "mysql-flexible-server"
+
+    service_delegation {
+      name    = "Microsoft.DBforMySQL/flexibleServers"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
+  }
+}
+
 resource "azurerm_subnet_network_security_group_association" "container_apps" {
   subnet_id                 = azurerm_subnet.container_apps.id
   network_security_group_id = azurerm_network_security_group.container_apps.id
@@ -71,6 +87,20 @@ resource "azurerm_private_dns_zone" "postgres" {
 resource "azurerm_private_dns_zone_virtual_network_link" "postgres" {
   name                 = "${var.name_prefix}-pg-dns-link"
   private_dns_zone_id  = azurerm_private_dns_zone.postgres.id
+  virtual_network_id   = azurerm_virtual_network.main.id
+  registration_enabled = false
+  tags                 = var.tags
+}
+
+resource "azurerm_private_dns_zone" "mysql" {
+  name                = "${var.name_prefix}.mysql.database.azure.com"
+  resource_group_name = var.resource_group_name
+  tags                = var.tags
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "mysql" {
+  name                 = "${var.name_prefix}-mysql-dns-link"
+  private_dns_zone_id  = azurerm_private_dns_zone.mysql.id
   virtual_network_id   = azurerm_virtual_network.main.id
   registration_enabled = false
   tags                 = var.tags

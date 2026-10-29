@@ -4,6 +4,8 @@ location    = "UK South"
 # Set a short lowercase suffix if a globally unique ACR or Key Vault name is required.
 resource_suffix = ""
 
+enable_glpi = true
+
 # GoDaddy remains the registrar; Azure DNS becomes authoritative after the
 # first apply returns the four Azure nameservers.
 domain_name                  = "platf0rm.site"

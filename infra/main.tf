@@ -91,6 +91,46 @@ module "container_app" {
   depends_on = [module.key_vault]
 }
 
+module "glpi_database" {
+  count  = var.enable_glpi ? 1 : 0
+  source = "./modules/glpi-database"
+
+  name                       = "${local.prefix}-glpi-mysql"
+  location                   = azurerm_resource_group.main.location
+  resource_group_name        = azurerm_resource_group.main.name
+  delegated_subnet_id        = module.network.glpi_database_subnet_id
+  private_dns_zone_id        = module.network.mysql_private_dns_zone_id
+  administrator_login        = "glpiadmin"
+  administrator_password     = var.glpi_database_password
+  database_name              = "glpi"
+  sku_name                   = var.glpi_mysql_sku_name
+  log_analytics_workspace_id = module.monitoring.log_analytics_workspace_id
+  tags                       = merge(local.tags, { Workload = "glpi-soc" })
+}
+
+module "glpi" {
+  count  = var.enable_glpi ? 1 : 0
+  source = "./modules/glpi"
+
+  name                         = "${local.prefix}-glpi"
+  name_prefix                  = "${local.prefix}-glpi"
+  location                     = azurerm_resource_group.main.location
+  resource_group_name          = azurerm_resource_group.main.name
+  container_app_environment_id = module.container_app.container_app_environment_id
+  key_vault_id                 = module.key_vault.key_vault_id
+  database_host                = module.glpi_database[0].fqdn
+  database_name                = module.glpi_database[0].database_name
+  database_user                = "glpiadmin"
+  database_password            = var.glpi_database_password
+  storage_account_name         = substr(replace("${local.compact_name}glpi", "-", ""), 0, 24)
+  image                        = var.glpi_image
+  domain_name                  = var.domain_name
+  subdomain                    = "ticket"
+  tags                         = merge(local.tags, { Workload = "glpi-soc" })
+
+  depends_on = [module.glpi_database]
+}
+
 module "dns" {
   source = "./modules/dns"
 

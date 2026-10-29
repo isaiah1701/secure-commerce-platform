@@ -17,3 +17,13 @@ output "postgres_private_dns_zone_id" {
   description = "PostgreSQL private DNS zone resource ID."
   value       = azurerm_private_dns_zone.postgres.id
 }
+
+output "glpi_database_subnet_id" {
+  description = "Delegated MySQL Flexible Server subnet resource ID for GLPI."
+  value       = azurerm_subnet.glpi_database.id
+}
+
+output "mysql_private_dns_zone_id" {
+  description = "Private DNS zone resource ID for the GLPI MySQL server."
+  value       = azurerm_private_dns_zone.mysql.id
+}

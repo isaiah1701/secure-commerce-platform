@@ -84,6 +84,36 @@ variable "deployment_principal_object_id" {
   default     = null
 }
 
+variable "enable_glpi" {
+  description = "Deploy the isolated GLPI SOC ticketing workload."
+  type        = bool
+  default     = false
+}
+
+variable "glpi_database_password" {
+  description = "GLPI MySQL administrator/application password."
+  type        = string
+  sensitive   = true
+  default     = null
+
+  validation {
+    condition     = var.glpi_database_password == null || length(var.glpi_database_password) >= 16
+    error_message = "glpi_database_password must be at least 16 characters when GLPI is enabled."
+  }
+}
+
+variable "glpi_mysql_sku_name" {
+  description = "GLPI MySQL Flexible Server compute SKU."
+  type        = string
+  default     = "B_Standard_B1ms"
+}
+
+variable "glpi_image" {
+  description = "Pinned official GLPI container image."
+  type        = string
+  default     = "glpi/glpi:10.0.28"
+}
+
 variable "container_image" {
   description = "Container repository without a tag. The public placeholder permits infrastructure bootstrapping."
   type        = string
