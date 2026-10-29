@@ -33,6 +33,7 @@ env:
   ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
   TF_VAR_postgres_admin_password: ${{ secrets.POSTGRES_ADMIN_PASSWORD }}
   TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
+  TF_VAR_glpi_database_password: ${{ secrets.GLPI_DATABASE_PASSWORD }}
 
 jobs:
   terraform:
