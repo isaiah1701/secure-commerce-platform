@@ -87,11 +87,3 @@ resource "azurerm_container_app" "main" {
     }
   }
 }
-resource "azurerm_monitor_diagnostic_setting" "main" {
-  name                       = "send-to-log-analytics"
-  target_resource_id         = azurerm_container_app.main.id
-  log_analytics_workspace_id = var.log_analytics_workspace_id
-  enabled_log {
-    category = "ContainerAppConsoleLogs"
-  }
-}
