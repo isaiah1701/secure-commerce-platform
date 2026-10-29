@@ -14,6 +14,7 @@ variable "database_password" {
 }
 variable "log_analytics_workspace_id" { type = string }
 variable "vm_size" {
+  # Keep overridable because regional capacity changes over time.
   type    = string
   default = "Standard_B2s"
 }
