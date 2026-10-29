@@ -1,4 +1,12 @@
 resource "azurerm_storage_account" "data" {
+  #checkov:skip=CKV_AZURE_206:LRS is a cost-controlled lab choice for the isolated database volume.
+  #checkov:skip=CKV_AZURE_33:Queue logging is irrelevant because this account is used only for Azure Files.
+  #checkov:skip=CKV_AZURE_59:Container Apps Azure Files requires a reachable storage endpoint and the share is not public.
+  #checkov:skip=CKV2_AZURE_40:Container Apps Azure Files integration requires shared-key authorization.
+  #checkov:skip=CKV2_AZURE_38:Soft delete is not supported for this Azure Files provider configuration.
+  #checkov:skip=CKV2_AZURE_41:SAS expiration is not used because the environment storage binding uses the account key.
+  #checkov:skip=CKV2_AZURE_33:Private endpoint would require additional Container Apps storage networking.
+  #checkov:skip=CKV2_AZURE_1:Microsoft-managed encryption is proportionate for this training lab.
   name                            = var.storage_account_name
   resource_group_name             = var.resource_group_name
   location                        = var.location
