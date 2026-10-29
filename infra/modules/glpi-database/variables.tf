@@ -1,27 +1,25 @@
 variable "name" { type = string }
 variable "location" { type = string }
 variable "resource_group_name" { type = string }
-variable "delegated_subnet_id" { type = string }
-variable "private_dns_zone_id" { type = string }
-variable "administrator_login" { type = string }
-
-variable "administrator_password" {
+variable "container_app_environment_id" { type = string }
+variable "database_password" {
   type      = string
   sensitive = true
 }
-
+variable "log_analytics_workspace_id" { type = string }
+variable "storage_account_name" { type = string }
 variable "database_name" {
   type    = string
   default = "glpi"
 }
-
-variable "sku_name" {
+variable "database_user" {
   type    = string
-  default = "B_Standard_B1ms"
+  default = "glpiadmin"
 }
-
-variable "log_analytics_workspace_id" { type = string }
-
+variable "image" {
+  type    = string
+  default = "mariadb:10.11"
+}
 variable "tags" {
   type    = map(string)
   default = {}

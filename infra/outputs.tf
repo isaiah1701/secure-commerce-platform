@@ -58,7 +58,3 @@ output "glpi_container_app_fqdn" {
   value       = var.enable_glpi ? module.glpi[0].container_app_fqdn : null
 }
 
-output "glpi_database_private_ip" {
-  description = "Private IP of the isolated GLPI MariaDB VM."
-  value       = var.enable_glpi ? module.glpi_database_vm[0].private_ip_address : null
-}
