@@ -30,7 +30,7 @@ module "acr" {
   location                       = azurerm_resource_group.main.location
   resource_group_name            = azurerm_resource_group.main.name
   log_analytics_workspace_id     = module.monitoring.log_analytics_workspace_id
-  deployment_principal_object_id = data.azurerm_client_config.current.object_id
+  deployment_principal_object_id = coalesce(var.deployment_principal_object_id, data.azurerm_client_config.current.object_id)
   tags                           = local.tags
 }
 
@@ -57,7 +57,7 @@ module "key_vault" {
   location                               = azurerm_resource_group.main.location
   resource_group_name                    = azurerm_resource_group.main.name
   tenant_id                              = data.azurerm_client_config.current.tenant_id
-  deployment_principal_object_id         = data.azurerm_client_config.current.object_id
+  deployment_principal_object_id         = coalesce(var.deployment_principal_object_id, data.azurerm_client_config.current.object_id)
   app_identity_principal_id              = module.acr.identity_principal_id
   postgres_admin_username                = var.postgres_admin_username
   postgres_admin_password                = var.postgres_admin_password

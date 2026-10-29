@@ -78,6 +78,12 @@ variable "jwt_secret" {
   }
 }
 
+variable "deployment_principal_object_id" {
+  description = "Object ID granted Terraform deployment permissions. Defaults to the current Azure identity."
+  type        = string
+  default     = null
+}
+
 variable "container_image" {
   description = "Container repository without a tag. The public placeholder permits infrastructure bootstrapping."
   type        = string
