@@ -16,7 +16,7 @@ variable "log_analytics_workspace_id" { type = string }
 variable "vm_size" {
   # Keep overridable because regional capacity changes over time.
   type    = string
-  default = "Standard_B2s"
+  default = "Standard_B2ls_v2"
 }
 variable "tags" {
   type    = map(string)
