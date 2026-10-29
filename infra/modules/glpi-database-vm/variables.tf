@@ -13,7 +13,7 @@ variable "database_password" {
 variable "log_analytics_workspace_id" { type = string }
 variable "vm_size" {
   type    = string
-  default = "Standard_B1s"
+  default = "Standard_D2as_v5"
 }
 variable "tags" {
   type    = map(string)
