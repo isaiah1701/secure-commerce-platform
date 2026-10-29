@@ -50,7 +50,7 @@ jobs:
 
       - name: Test backend
         working-directory: backend
-        run: pytest -q
+        run: PYTHONPATH=. pytest -q
 
       - name: Set up Node.js
         uses: actions/setup-node@v7
