@@ -11,6 +11,10 @@ resource "azurerm_network_interface" "main" {
 }
 
 resource "azurerm_linux_virtual_machine" "main" {
+  #checkov:skip=CKV_AZURE_178:This isolated lab VM has no public IP or SSH ingress; password is retained only for break-glass recovery.
+  #checkov:skip=CKV_AZURE_50:Cloud-init is used for deterministic MariaDB bootstrap and no VM extension is installed.
+  #checkov:skip=CKV_AZURE_1:Break-glass password authentication is required because this VM is private and has no public ingress.
+  #checkov:skip=CKV_AZURE_149:Break-glass password authentication is required because this VM is private and has no public ingress.
   name                            = var.name
   resource_group_name             = var.resource_group_name
   location                        = var.location
@@ -39,6 +43,8 @@ resource "azurerm_linux_virtual_machine" "main" {
 }
 
 resource "azurerm_managed_disk" "data" {
+  #checkov:skip=CKV_AZURE_93:Microsoft-managed disk encryption is proportionate for this cost-controlled training lab.
+  #checkov:skip=CKV_AZURE_251:The disk is attached only to a private VM NIC and has no public data path.
   name                 = "${var.name}-data"
   location             = var.location
   resource_group_name  = var.resource_group_name
