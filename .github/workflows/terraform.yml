@@ -83,7 +83,7 @@ jobs:
         run: checkov --directory . --framework terraform --compact
 
       - name: Create Terraform plan
-        run: terraform plan -input=false -lock-timeout=5m -var-file=environments/dev.tfvars -out=tfplan
+        run: terraform plan -input=false -lock-timeout=5m -var-file=environments/dev.tfvars -var="resource_suffix=${{ vars.RESOURCE_SUFFIX }}" -out=tfplan
 
       - name: Apply Terraform plan
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
