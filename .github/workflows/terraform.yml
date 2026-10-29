@@ -34,6 +34,7 @@ env:
   TF_VAR_postgres_admin_password: ${{ secrets.POSTGRES_ADMIN_PASSWORD }}
   TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
   TF_VAR_glpi_database_password: ${{ secrets.GLPI_DATABASE_PASSWORD }}
+  TF_VAR_glpi_vm_admin_password: ${{ secrets.GLPI_VM_ADMIN_PASSWORD }}
 
 jobs:
   terraform:

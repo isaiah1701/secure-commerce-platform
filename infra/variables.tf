@@ -90,6 +90,12 @@ variable "enable_glpi" {
   default     = false
 }
 
+variable "glpi_database_location" {
+  description = "Region for the durable GLPI MariaDB VM."
+  type        = string
+  default     = "North Europe"
+}
+
 variable "glpi_database_password" {
   description = "GLPI MySQL administrator/application password."
   type        = string
@@ -99,6 +105,17 @@ variable "glpi_database_password" {
   validation {
     condition     = var.glpi_database_password == null || length(var.glpi_database_password) >= 16
     error_message = "glpi_database_password must be at least 16 characters when GLPI is enabled."
+  }
+}
+
+variable "glpi_vm_admin_password" {
+  description = "Linux admin password for the private GLPI database VM."
+  type        = string
+  sensitive   = true
+  default     = null
+  validation {
+    condition     = var.glpi_vm_admin_password == null || length(var.glpi_vm_admin_password) >= 16
+    error_message = "glpi_vm_admin_password must be at least 16 characters when GLPI is enabled."
   }
 }
 

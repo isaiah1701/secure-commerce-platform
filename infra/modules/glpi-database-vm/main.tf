@@ -1,13 +1,56 @@
+resource "azurerm_virtual_network" "db" {
+  name                = "${var.name}-vnet"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  address_space       = ["10.40.0.0/16"]
+  tags                = var.tags
+}
+resource "azurerm_subnet" "db" {
+  name                 = "${var.name}-snet"
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = azurerm_virtual_network.db.name
+  address_prefixes     = ["10.40.0.0/24"]
+}
+resource "azurerm_network_security_group" "db" {
+  name                = "${var.name}-nsg"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  security_rule {
+    name                       = "allow-mysql-from-commerce-vnet"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "3306"
+    source_address_prefix      = "10.20.0.0/16"
+    destination_address_prefix = "*"
+  }
+  tags = var.tags
+}
+resource "azurerm_subnet_network_security_group_association" "db" {
+  subnet_id                 = azurerm_subnet.db.id
+  network_security_group_id = azurerm_network_security_group.db.id
+}
+resource "azurerm_virtual_network_peering" "to_commerce" {
+  name                         = "${var.name}-to-commerce"
+  resource_group_name          = var.resource_group_name
+  virtual_network_name         = azurerm_virtual_network.db.name
+  remote_virtual_network_id    = var.peer_vnet_id
+  allow_virtual_network_access = true
+  allow_forwarded_traffic      = true
+}
 resource "azurerm_network_interface" "main" {
   name                = "${var.name}-nic"
   location            = var.location
   resource_group_name = var.resource_group_name
   ip_configuration {
     name                          = "internal"
-    subnet_id                     = var.subnet_id
+    subnet_id                     = azurerm_subnet.db.id
     private_ip_address_allocation = "Dynamic"
   }
-  tags = var.tags
+  tags       = var.tags
+  depends_on = [azurerm_subnet_network_security_group_association.db]
 }
 
 resource "azurerm_linux_virtual_machine" "main" {
