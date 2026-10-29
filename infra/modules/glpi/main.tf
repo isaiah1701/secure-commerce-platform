@@ -149,24 +149,6 @@ resource "azurerm_container_app" "main" {
         path = "/var/glpi"
       }
 
-      liveness_probe {
-        transport               = "HTTP"
-        path                    = "/"
-        port                    = 80
-        initial_delay           = 45
-        interval_seconds        = 30
-        timeout                 = 5
-        failure_count_threshold = 5
-      }
-
-      readiness_probe {
-        transport               = "HTTP"
-        path                    = "/"
-        port                    = 80
-        interval_seconds        = 15
-        timeout                 = 5
-        failure_count_threshold = 8
-      }
     }
   }
 }
