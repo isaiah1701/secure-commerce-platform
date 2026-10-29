@@ -91,11 +91,6 @@ resource "azurerm_container_app" "main" {
     min_replicas = var.min_replicas
     max_replicas = var.max_replicas
 
-    volume {
-      name         = "mariadb-data"
-      storage_name = var.database_storage_name
-      storage_type = "AzureFile"
-    }
 
     container {
       name   = "glpi"
@@ -167,10 +162,6 @@ resource "azurerm_container_app" "main" {
       env {
         name        = "MARIADB_ROOT_PASSWORD"
         secret_name = "database-password"
-      }
-      volume_mounts {
-        name = "mariadb-data"
-        path = "/var/lib/mysql"
       }
     }
   }

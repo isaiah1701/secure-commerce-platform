@@ -5,7 +5,6 @@ variable "resource_group_name" { type = string }
 variable "container_app_environment_id" { type = string }
 variable "key_vault_id" { type = string }
 variable "database_host" { type = string }
-variable "database_storage_name" { type = string }
 
 variable "database_name" {
   type    = string
