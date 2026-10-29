@@ -92,12 +92,6 @@ resource "azurerm_container_app" "main" {
     max_replicas = var.max_replicas
 
     volume {
-      name         = "glpi-data"
-      storage_name = azurerm_container_app_environment_storage.glpi.name
-      storage_type = "AzureFile"
-    }
-
-    volume {
       name         = "mariadb-data"
       storage_name = var.database_storage_name
       storage_type = "AzureFile"
@@ -150,10 +144,6 @@ resource "azurerm_container_app" "main" {
         secret_name = "database-password"
       }
 
-      volume_mounts {
-        name = "glpi-data"
-        path = "/var/glpi/files"
-      }
 
     }
 
