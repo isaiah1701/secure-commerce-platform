@@ -31,6 +31,7 @@ resource "azurerm_network_security_group" "db" {
 resource "azurerm_subnet_network_security_group_association" "db" {
   subnet_id                 = azurerm_subnet.db.id
   network_security_group_id = azurerm_network_security_group.db.id
+  depends_on                = [azurerm_subnet.db]
 }
 resource "azurerm_virtual_network_peering" "to_commerce" {
   name                         = "${var.name}-to-commerce"
