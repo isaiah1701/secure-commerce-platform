@@ -121,7 +121,7 @@ resource "azurerm_container_app" "main" {
       }
       env {
         name  = "GLPI_DB_SSL"
-        value = "true"
+        value = "false"
       }
       env {
         name  = "GLPI_SKIP_AUTOINSTALL"
