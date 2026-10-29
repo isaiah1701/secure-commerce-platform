@@ -11,8 +11,9 @@ runcmd:
   - mount /dev/disk/azure/scsi1/lun0 /mnt/mysql-data
   - systemctl stop mariadb || true
   - bash -c "if [ ! -e /mnt/mysql-data/mysql ]; then rsync -a /var/lib/mysql/ /mnt/mysql-data/; fi"
+  - umount /var/lib/mysql || true
   - bash -c "grep -q '/dev/disk/azure/scsi1/lun0 /var/lib/mysql' /etc/fstab || echo '/dev/disk/azure/scsi1/lun0 /var/lib/mysql ext4 defaults,nofail 0 2' >> /etc/fstab"
-  - mount --bind /mnt/mysql-data /var/lib/mysql
+  - mount /var/lib/mysql
   - chown -R mysql:mysql /mnt/mysql-data
   - mkdir -p /etc/mysql/ssl
   - bash -c "openssl req -x509 -nodes -newkey rsa:2048 -days 3650 -keyout /etc/mysql/ssl/server-key.pem -out /etc/mysql/ssl/server-cert.pem -subj '/CN=glpi-mariadb'"
