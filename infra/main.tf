@@ -115,16 +115,16 @@ module "glpi" {
   resource_group_name          = azurerm_resource_group.main.name
   container_app_environment_id = module.container_app.container_app_environment_id
   key_vault_id                 = module.key_vault.key_vault_id
-  # Container Apps environment DNS resolves internal app names directly.
-  database_host        = "${local.prefix}-glpi-mariadb"
-  database_name        = "glpi"
-  database_user        = "glpiadmin"
-  database_password    = var.glpi_database_password
-  storage_account_name = substr(replace("${local.compact_name}glpi", "-", ""), 0, 24)
-  image                = var.glpi_image
-  domain_name          = var.domain_name
-  subdomain            = "ticket"
-  tags                 = merge(local.tags, { Workload = "glpi-soc" })
+  database_host                = "127.0.0.1"
+  database_storage_name        = module.glpi_database[0].storage_name
+  database_name                = "glpi"
+  database_user                = "glpiadmin"
+  database_password            = var.glpi_database_password
+  storage_account_name         = substr(replace("${local.compact_name}glpi", "-", ""), 0, 24)
+  image                        = var.glpi_image
+  domain_name                  = var.domain_name
+  subdomain                    = "ticket"
+  tags                         = merge(local.tags, { Workload = "glpi-soc" })
 
   depends_on = [module.glpi_database]
 }
