@@ -53,20 +53,12 @@ resource "azurerm_subnet" "database" {
 }
 
 resource "azurerm_subnet" "glpi_database" {
-  #checkov:skip=CKV2_AZURE_31:This delegated MySQL subnet uses the database NSG below; the provider evaluates delegated subnets before the association is attached.
+  #checkov:skip=CKV2_AZURE_31:The private GLPI database VM is protected by the database NSG below.
   name                 = "${var.name_prefix}-glpi-db-snet"
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = ["10.20.5.0/24"]
 
-  delegation {
-    name = "mysql-flexible-server"
-
-    service_delegation {
-      name    = "Microsoft.DBforMySQL/flexibleServers"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
-    }
-  }
 }
 
 resource "azurerm_subnet_network_security_group_association" "glpi_database" {

@@ -102,6 +102,18 @@ variable "glpi_database_password" {
   }
 }
 
+variable "glpi_vm_admin_password" {
+  description = "Linux admin password for the private GLPI database VM. Supply with TF_VAR_glpi_vm_admin_password."
+  type        = string
+  sensitive   = true
+  default     = null
+
+  validation {
+    condition     = var.glpi_vm_admin_password == null || length(var.glpi_vm_admin_password) >= 16
+    error_message = "glpi_vm_admin_password must be at least 16 characters when GLPI is enabled."
+  }
+}
+
 variable "glpi_mysql_sku_name" {
   description = "GLPI MySQL Flexible Server compute SKU."
   type        = string
