@@ -42,6 +42,14 @@ resource "azurerm_container_app" "main" {
         name        = "MARIADB_ROOT_PASSWORD"
         secret_name = "database-password"
       }
+      startup_probe {
+        transport               = "TCP"
+        port                    = 3306
+        initial_delay           = 30
+        interval_seconds        = 10
+        timeout                 = 5
+        failure_count_threshold = 30
+      }
     }
   }
 }
