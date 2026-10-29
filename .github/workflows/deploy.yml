@@ -1,0 +1,139 @@
+name: Build and deploy application
+
+on:
+  workflow_run:
+    workflows: [Terraform]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  security-events: write
+
+concurrency:
+  group: application-dev
+  cancel-in-progress: true
+
+jobs:
+  test-build-deploy:
+    name: Test, scan, and deploy
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.event == 'push' && github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    environment: dev
+    env:
+      IMAGE_REPOSITORY: secure-commerce
+      DEPLOY_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ env.DEPLOY_SHA }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+
+      - name: Install backend dependencies
+        run: pip install --disable-pip-version-check -r backend/requirements-dev.txt
+
+      - name: Lint backend
+        working-directory: backend
+        run: ruff check .
+
+      - name: Test backend
+        working-directory: backend
+        run: pytest -q
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Lint frontend
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+      - name: Build immutable application image
+        env:
+          IMAGE: ${{ vars.ACR_LOGIN_SERVER }}/secure-commerce:${{ env.DEPLOY_SHA }}
+        run: docker build --tag "$IMAGE" .
+
+      - name: Scan image with Trivy
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          image-ref: ${{ vars.ACR_LOGIN_SERVER }}/secure-commerce:${{ env.DEPLOY_SHA }}
+          format: sarif
+          output: trivy-results.sarif
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
+      - name: Upload Trivy results
+        if: always() && hashFiles('trivy-results.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-results.sarif
+
+      - name: Authenticate to Azure with OIDC
+        uses: azure/login@v3
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Sign in to Azure Container Registry
+        run: az acr login --name "${{ vars.ACR_NAME }}"
+
+      - name: Push immutable image
+        env:
+          IMAGE: ${{ vars.ACR_LOGIN_SERVER }}/secure-commerce:${{ env.DEPLOY_SHA }}
+        run: docker push "$IMAGE"
+
+      - name: Deploy image revision
+        env:
+          IMAGE: ${{ vars.ACR_LOGIN_SERVER }}/secure-commerce:${{ env.DEPLOY_SHA }}
+        run: |
+          az containerapp update \
+            --name "${{ vars.CONTAINER_APP_NAME }}" \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --image "$IMAGE" \
+            --revision-suffix "${DEPLOY_SHA::12}"
+
+      - name: Verify deployed health
+        run: |
+          app_fqdn=$(az containerapp show \
+            --name "${{ vars.CONTAINER_APP_NAME }}" \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --query properties.configuration.ingress.fqdn \
+            --output tsv)
+
+          for attempt in {1..20}; do
+            if curl --fail --silent --show-error "https://${app_fqdn}/health" >/dev/null && \
+               curl --fail --silent --show-error "https://${app_fqdn}/ready" >/dev/null; then
+              echo "Deployment is healthy at https://${app_fqdn}"
+              exit 0
+            fi
+            echo "Health check attempt ${attempt}/20 failed; retrying in 15 seconds"
+            sleep 15
+          done
+
+          echo "Deployment did not become healthy"
+          exit 1

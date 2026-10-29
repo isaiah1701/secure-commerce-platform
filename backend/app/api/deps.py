@@ -26,7 +26,7 @@ def get_current_user(
         user_id = int(payload["sub"])
     except (jwt.PyJWTError, KeyError, TypeError, ValueError):
         security_event(request, "AUTH_UNAUTHORIZED", "Invalid authentication token", logging.WARNING)
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token") from None
     user = db.get(User, user_id)
     if not user or not user.is_active:
         security_event(request, "AUTH_UNAUTHORIZED", "Inactive or missing token subject", logging.WARNING)

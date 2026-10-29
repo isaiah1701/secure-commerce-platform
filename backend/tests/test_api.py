@@ -1,5 +1,5 @@
 from app.db.session import SessionLocal
-from app.models import Order, Product, User
+from app.models import Product, User
 
 
 def register(client, email="bob@example.com"):

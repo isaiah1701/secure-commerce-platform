@@ -17,10 +17,10 @@ const AuthContext = createContext<AuthValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(() => Boolean(localStorage.getItem('commerce_token')))
 
   useEffect(() => {
-    if (!localStorage.getItem('commerce_token')) { setLoading(false); return }
+    if (!localStorage.getItem('commerce_token')) return
     api<User>('/api/auth/me').then(setUser).catch(() => localStorage.removeItem('commerce_token')).finally(() => setLoading(false))
   }, [])
 

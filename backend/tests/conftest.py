@@ -42,7 +42,10 @@ def admin(client):
 
     with SessionLocal() as db:
         user = User(email="admin@example.com", password_hash=hash_password("AdminPass!1"), first_name="Test", last_name="Admin", role=UserRole.admin)
-        db.add(user); db.flush(); db.add(Cart(user_id=user.id)); db.commit()
+        db.add(user)
+        db.flush()
+        db.add(Cart(user_id=user.id))
+        db.commit()
     response = client.post("/api/auth/login", json={"email": "admin@example.com", "password": "AdminPass!1"})
     return {"user": response.json()["user"], "headers": {"Authorization": f"Bearer {response.json()['access_token']}"}}
 
@@ -50,10 +53,13 @@ def admin(client):
 @pytest.fixture
 def product():
     from decimal import Decimal
+
     from app.db.session import SessionLocal
     from app.models import Product
 
     with SessionLocal() as db:
         item = Product(name="Test Keyboard", description="A very useful test keyboard", category="Electronics", price=Decimal("50.00"), stock_quantity=10, image_url=None)
-        db.add(item); db.commit(); db.refresh(item)
+        db.add(item)
+        db.commit()
+        db.refresh(item)
         return item.id

@@ -1,0 +1,15 @@
+environment     = "dev"
+location        = "UK South"
+resource_suffix = "replace"
+
+domain_name   = "platf0rm.site"
+app_subdomain = "shop"
+# Enable only after GoDaddy delegates the zone to dns_name_servers.
+enable_custom_domain_binding = false
+
+postgres_admin_username = "commerceadmin"
+postgres_admin_password = "REPLACE_WITH_A_STRONG_16_PLUS_CHARACTER_PASSWORD"
+jwt_secret              = "REPLACE_WITH_AT_LEAST_32_RANDOM_CHARACTERS"
+
+container_image     = "mcr.microsoft.com/azuredocs/containerapps-helloworld"
+container_image_tag = "latest"

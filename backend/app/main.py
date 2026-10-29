@@ -1,9 +1,17 @@
 import logging
+import os
+from pathlib import Path
+
+if os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING"):
+    from azure.monitor.opentelemetry import configure_azure_monitor
+
+    configure_azure_monitor(disable_offline_storage=True)
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import FileResponse, JSONResponse, Response
+from fastapi.staticfiles import StaticFiles
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from sqlalchemy import text
 
@@ -67,3 +75,19 @@ async def validation_error(request: Request, exc: RequestValidationError):
 async def unhandled_error(request: Request, exc: Exception):
     logger.exception("Unhandled application error", extra={"event_type": "APPLICATION_ERROR", "request_id": request.state.request_id})
     return JSONResponse(status_code=500, content={"error": "Internal server error", "request_id": request.state.request_id})
+
+
+static_root = Path(os.getenv("STATIC_DIR", "/app/static"))
+if static_root.is_dir():
+    assets_dir = static_root / "assets"
+    if assets_dir.is_dir():
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="frontend-assets")
+
+    @app.get("/{frontend_path:path}", include_in_schema=False)
+    def frontend(frontend_path: str):
+        if frontend_path.startswith("api/"):
+            return JSONResponse(status_code=404, content={"error": "Not found"})
+        requested = (static_root / frontend_path).resolve()
+        if requested.is_relative_to(static_root.resolve()) and requested.is_file():
+            return FileResponse(requested)
+        return FileResponse(static_root / "index.html")
