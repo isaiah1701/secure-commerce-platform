@@ -91,6 +91,20 @@ module "container_app" {
   depends_on = [module.key_vault]
 }
 
+module "glpi_database" {
+  count  = var.enable_glpi ? 1 : 0
+  source = "./modules/glpi-database"
+
+  name                         = "${local.prefix}-glpi-mariadb"
+  location                     = azurerm_resource_group.main.location
+  resource_group_name          = azurerm_resource_group.main.name
+  container_app_environment_id = module.container_app.container_app_environment_id
+  database_password            = var.glpi_database_password
+  storage_account_name         = substr(replace("${local.compact_name}mariadb", "-", ""), 0, 24)
+  log_analytics_workspace_id   = module.monitoring.log_analytics_workspace_id
+  tags                         = merge(local.tags, { Workload = "glpi-soc" })
+}
+
 module "glpi" {
   count  = var.enable_glpi ? 1 : 0
   source = "./modules/glpi"
