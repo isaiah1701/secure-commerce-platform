@@ -1,1 +1,2 @@
-output "storage_name" { value = azurerm_container_app_environment_storage.data.name }
+output "fqdn" { value = azurerm_container_app.main.ingress[0].fqdn }
+output "database_name" { value = var.database_name }

@@ -6,8 +6,6 @@ variable "database_password" {
   type      = string
   sensitive = true
 }
-variable "log_analytics_workspace_id" { type = string }
-variable "storage_account_name" { type = string }
 variable "database_name" {
   type    = string
   default = "glpi"
