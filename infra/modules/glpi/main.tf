@@ -91,6 +91,12 @@ resource "azurerm_container_app" "main" {
     min_replicas = var.min_replicas
     max_replicas = var.max_replicas
 
+    volume {
+      name         = azurerm_container_app_environment_storage.glpi.name
+      storage_name = azurerm_container_app_environment_storage.glpi.name
+      storage_type = "AzureFile"
+    }
+
 
     container {
       name   = "glpi"
