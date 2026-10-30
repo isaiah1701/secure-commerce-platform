@@ -114,6 +114,33 @@ variable "enable_soc" {
   default     = true
 }
 
+variable "enable_soar" {
+  description = "Deploy the Sentinel incident to GLPI Logic App playbook."
+  type        = bool
+  default     = false
+}
+
+variable "glpi_api_username" {
+  description = "Dedicated GLPI API integration username."
+  type        = string
+  sensitive   = true
+  default     = null
+}
+
+variable "glpi_api_password" {
+  description = "Dedicated GLPI API integration password."
+  type        = string
+  sensitive   = true
+  default     = null
+}
+
+variable "glpi_app_token" {
+  description = "GLPI API application token."
+  type        = string
+  sensitive   = true
+  default     = null
+}
+
 variable "glpi_image" {
   description = "Pinned official GLPI container image."
   type        = string

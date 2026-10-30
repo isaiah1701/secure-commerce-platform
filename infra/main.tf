@@ -141,6 +141,26 @@ module "soc" {
   tags                       = local.tags
 }
 
+module "soar" {
+  count  = var.enable_soar ? 1 : 0
+  source = "./modules/soar"
+
+  name_prefix           = local.prefix
+  location              = azurerm_resource_group.main.location
+  resource_group_name   = azurerm_resource_group.main.name
+  workspace_id          = module.monitoring.log_analytics_workspace_id
+  workspace_customer_id = module.monitoring.log_analytics_workspace_customer_id
+  key_vault_id          = module.key_vault.key_vault_id
+  key_vault_name        = local.key_vault_name
+  glpi_api_url          = "https://ticket.${var.domain_name}"
+  glpi_api_username     = var.glpi_api_username
+  glpi_api_password     = var.glpi_api_password
+  glpi_app_token        = var.glpi_app_token
+  tags                  = merge(local.tags, { Workload = "sentinel-glpi-soar" })
+
+  depends_on = [module.glpi]
+}
+
 module "dns" {
   source = "./modules/dns"
 
