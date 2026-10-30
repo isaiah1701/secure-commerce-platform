@@ -1,4 +1,6 @@
 resource "azurerm_mysql_flexible_server" "main" {
+  #checkov:skip=CKV_AZURE_94:Geo-redundant backups are excluded for this single-region training lab; seven-day local backups remain enabled.
+  #checkov:skip=CKV2_AZURE_56:Azure MySQL Flexible Server private access uses a delegated subnet and private DNS; a separate Private Link endpoint is not applicable.
   name                         = var.name
   resource_group_name          = var.resource_group_name
   location                     = var.location
