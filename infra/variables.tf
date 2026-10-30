@@ -117,7 +117,7 @@ variable "enable_soc" {
 variable "glpi_image" {
   description = "Pinned official GLPI container image."
   type        = string
-  default     = "glpi/glpi:10.0.28"
+  default     = "glpi/glpi:11.0.7"
 }
 
 variable "container_image" {
