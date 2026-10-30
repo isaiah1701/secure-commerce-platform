@@ -3,25 +3,13 @@ data "azurerm_managed_api" "sentinel" {
   location = var.location
 }
 
-resource "azurerm_key_vault_secret" "glpi_api_username" {
-  name         = "soc-glpi-api-username"
-  value        = var.glpi_api_username
-  key_vault_id = var.key_vault_id
-  content_type = "GLPI API integration username"
-}
-
-resource "azurerm_key_vault_secret" "glpi_api_password" {
-  name         = "soc-glpi-api-password"
-  value        = var.glpi_api_password
-  key_vault_id = var.key_vault_id
-  content_type = "GLPI API integration password"
-}
-
-resource "azurerm_key_vault_secret" "glpi_app_token" {
-  name         = "soc-glpi-app-token"
-  value        = var.glpi_app_token
-  key_vault_id = var.key_vault_id
-  content_type = "GLPI API application token"
+locals {
+  # These secrets are provisioned out-of-band so their values never enter
+  # Terraform state. The Logic App retrieves them at runtime via managed
+  # identity; only their stable Key Vault names are needed here.
+  glpi_api_username_secret_name = "soc-glpi-api-username"
+  glpi_api_password_secret_name = "soc-glpi-api-password"
+  glpi_app_token_secret_name    = "soc-glpi-app-token"
 }
 
 resource "azurerm_api_connection" "sentinel" {
@@ -58,15 +46,13 @@ resource "azurerm_logic_app_workflow" "main" {
 
   parameters = {
     "$connections" = jsonencode({
-      value = {
-        azuresentinel = {
-          connectionId   = azurerm_api_connection.sentinel.id
-          connectionName = azurerm_api_connection.sentinel.name
-          id             = data.azurerm_managed_api.sentinel.id
-          connectionProperties = {
-            authentication = { type = "ManagedServiceIdentity" }
-          }
+      azuresentinel = {
+        connectionId   = azurerm_api_connection.sentinel.id
+        connectionName = azurerm_api_connection.sentinel.name
+        connectionProperties = {
+          authentication = { type = "ManagedServiceIdentity" }
         }
+        id = data.azurerm_managed_api.sentinel.id
       }
     })
   }
@@ -98,7 +84,7 @@ resource "azurerm_logic_app_action_custom" "get_glpi_username" {
     type = "Http"
     inputs = {
       method = "GET"
-      uri    = "https://${var.key_vault_name}.vault.azure.net/secrets/${azurerm_key_vault_secret.glpi_api_username.name}?api-version=7.4"
+      uri    = "https://${var.key_vault_name}.vault.azure.net/secrets/${local.glpi_api_username_secret_name}?api-version=7.4"
       authentication = {
         type     = "ManagedServiceIdentity"
         audience = "https://vault.azure.net"
@@ -119,7 +105,7 @@ resource "azurerm_logic_app_action_custom" "get_glpi_password" {
     type = "Http"
     inputs = {
       method = "GET"
-      uri    = "https://${var.key_vault_name}.vault.azure.net/secrets/${azurerm_key_vault_secret.glpi_api_password.name}?api-version=7.4"
+      uri    = "https://${var.key_vault_name}.vault.azure.net/secrets/${local.glpi_api_password_secret_name}?api-version=7.4"
       authentication = {
         type     = "ManagedServiceIdentity"
         audience = "https://vault.azure.net"
@@ -140,7 +126,7 @@ resource "azurerm_logic_app_action_custom" "get_glpi_app_token" {
     type = "Http"
     inputs = {
       method = "GET"
-      uri    = "https://${var.key_vault_name}.vault.azure.net/secrets/${azurerm_key_vault_secret.glpi_app_token.name}?api-version=7.4"
+      uri    = "https://${var.key_vault_name}.vault.azure.net/secrets/${local.glpi_app_token_secret_name}?api-version=7.4"
       authentication = {
         type     = "ManagedServiceIdentity"
         audience = "https://vault.azure.net"
@@ -287,6 +273,13 @@ resource "azurerm_role_assignment" "sentinel_responder" {
   principal_type       = "ServicePrincipal"
 }
 
+resource "azurerm_role_assignment" "sentinel_automation_contributor" {
+  scope                = var.resource_group_id
+  role_definition_name = "Microsoft Sentinel Automation Contributor"
+  principal_id         = var.sentinel_service_principal_object_id
+  principal_type       = "ServicePrincipal"
+}
+
 resource "azurerm_role_assignment" "log_analytics_reader" {
   scope                = var.workspace_id
   role_definition_name = "Log Analytics Reader"
@@ -295,7 +288,7 @@ resource "azurerm_role_assignment" "log_analytics_reader" {
 }
 
 resource "azurerm_sentinel_automation_rule" "glpi" {
-  name                       = "${var.name_prefix}-sentinel-to-glpi"
+  name                       = uuidv5("url", "${var.name_prefix}-sentinel-to-glpi")
   log_analytics_workspace_id = var.workspace_id
   display_name               = "SOC - Create GLPI investigation ticket"
   order                      = 100

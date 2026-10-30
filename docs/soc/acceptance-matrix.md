@@ -14,5 +14,6 @@
 | GLPI DNS | PASS | `ticket.platf0rm.site` resolves to the GLPI Container App CNAME and Azure Container Apps edge IP. |
 | GLPI HTTPS/application | PASS | Managed SNI certificate is active; `https://ticket.platf0rm.site/` returned HTTP 200 and the GLPI authentication page. See `docs/glpi-runtime-verification.md`. |
 | Durable GLPI database | PASS (metadata verified) | MySQL is `Ready` with public access disabled; the live GLPI schema has 442 tables and the existing database metadata was repaired without touching tickets, users, or files. Ticket/attachment persistence still requires a dedicated test account. |
-| Sentinel-to-GLPI automation | IMPLEMENTED / NOT DEPLOYED | Terraform playbook source is committed in `infra/modules/soar`; live deployment and API execution await enabling GLPI's authenticated API and creating its dedicated integration credential. |
+| Sentinel-to-GLPI automation | PASS (trigger and replay) | Native Sentinel trigger is deployed; Logic App run `08584082471491068316023616235CU60` succeeded and created GLPI ticket 1 for incident 17. Replaying the same incident left GLPI search `totalcount=1`. |
+| GLPI authenticated integration | PASS | Dedicated restricted GLPI account authenticated successfully after password and application-token rotation; values are stored in Key Vault and retrieved by the Logic App managed identity. |
 | Endpoint security/EDR | NOT STARTED | Requires a licensing check and separate approval for any paid endpoint service. |

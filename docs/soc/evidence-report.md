@@ -33,16 +33,25 @@ Sentinel result:
 - Status: New
 - Incident URL: [Open incident in Azure](https://portal.azure.com/#asset/Microsoft_Azure_Security_Insights/Incident/subscriptions/43adc2c2-0fd5-4474-aa8a-9f32f541e4b7/resourceGroups/secure-commerce-dev-rg/providers/Microsoft.OperationalInsights/workspaces/secure-commerce-dev-law/providers/Microsoft.SecurityInsights/Incidents/9e2ab71b-0b90-4ee6-ab8a-4cabfa69d2ea)
 
-## Pending integration evidence
+## Live Sentinel-to-GLPI evidence
 
-The GLPI API currently returns `API disabled`. The Terraform playbook is
-committed, but no GLPI ticket is claimed until the API is enabled, a dedicated
-integration user is created, and the Logic App is deployed and exercised.
-No manual or synthetic GLPI ticket has been created as a substitute.
+The authenticated GLPI API is enabled with a restricted dedicated integration
+identity. Its password and application token were rotated after deployment and
+stored in Key Vault; no secret values are recorded here.
 
-Required next evidence:
+| Scenario | Simulation ID | Sentinel incident | Logic App run | GLPI ticket | Result |
+|---|---|---|---|---|---|
+| Native trigger diagnostic using real incident metadata | `soc-auth-rate-soar-20261030T1128Z` evidence window; incident 17 replay | 17 / `80428182-639a-4669-9a86-d8614f04908b` | `08584082471491068316023616235CU60` | Ticket 1: [GLPI ticket 1](https://ticket.platf0rm.site/front/ticket.form.php?id=1) | PASS |
 
-1. Logic App workflow run ID for incident 15.
-2. GLPI API response and ticket ID/URL.
-3. Duplicate-event replay showing no second ticket.
-4. Muhammad-facing ticket content review.
+The Logic App native Sentinel trigger returned HTTP 202 and the run completed
+with `Succeeded` from `2026-10-30T11:28:56Z` to `11:28:59Z`. A replay of the
+same incident also completed successfully and the GLPI search still returned
+`totalcount=1`, proving duplicate suppression.
+
+The bounded rate-limit scenario `soc-auth-rate-soar-20261030T1128Z` produced
+409 correlated events in `ContainerAppConsoleLogs_CL` (including
+`RATE_LIMIT_EXCEEDED`, `AUTH_LOGIN_FAILURE`, `AUTH_ACCOUNT_LOCKED`, and
+`HTTP_REQUEST`, with statuses 401 and 429) from `11:23:37Z` through
+`11:24:10Z`. The scheduled Sentinel incident for that fresh event was not
+observed during this validation window; the native trigger diagnostic therefore
+uses the real incident-17 metadata and is clearly labeled as such.
