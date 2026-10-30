@@ -150,10 +150,36 @@ resource "azurerm_container_app" "main" {
         value = "production"
       }
       env {
+        name  = "GLPI_INSTALL_MODE"
+        value = "DOCKER"
+      }
+      env {
         name        = "GLPI_DB_PASSWORD"
         secret_name = "database-password"
       }
 
+      # The official GLPI image serves Apache on port 80 and does not expose a
+      # dedicated health endpoint.  Probe the application root so Container
+      # Apps only routes traffic to a revision that can serve GLPI itself.
+      liveness_probe {
+        transport               = "HTTP"
+        path                    = "/"
+        port                    = 80
+        initial_delay           = 30
+        interval_seconds        = 30
+        timeout                 = 5
+        failure_count_threshold = 3
+      }
+
+      readiness_probe {
+        transport               = "HTTP"
+        path                    = "/"
+        port                    = 80
+        interval_seconds        = 15
+        timeout                 = 5
+        failure_count_threshold = 5
+        success_count_threshold = 1
+      }
 
     }
 
