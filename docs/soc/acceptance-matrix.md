@@ -2,6 +2,7 @@
 
 | Component | Status | Evidence |
 |---|---|---|
+| Azure subscription offer | PASS | Subscription state `Enabled`; REST policy `quotaId=PayAsYouGo_2014-09-01`; spending limit `Off`. |
 | Commerce health | PASS | `https://shop.platf0rm.site/health` returned `{"status":"healthy"}`. |
 | Commerce readiness/database | PASS | `/ready` returned `{"status":"ready","database":"connected"}`. |
 | Log Analytics | PASS | `ContainerAppConsoleLogs_CL` returned recent rows through Azure CLI. |

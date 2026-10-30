@@ -1,0 +1,70 @@
+// Secure commerce SOC hunting pack
+// Workspace table: ContainerAppConsoleLogs_CL
+// Replace the time window and source columns only if the container log schema changes.
+
+// 1. Authentication failures and rate limiting by source
+ContainerAppConsoleLogs_CL
+| where TimeGenerated > ago(24h)
+| extend payload = parse_json(column_ifexists("Log_s", ""))
+| extend path = tostring(payload.path), status = toint(payload.status_code), source = coalesce(tostring(payload.client_ip), column_ifexists("ClientIP_s", "unknown"))
+| where path has "/api/auth/login" or status in (401, 403, 422, 429)
+| summarize Attempts=count(), Statuses=make_set(status), FirstSeen=min(TimeGenerated), LastSeen=max(TimeGenerated) by source
+| order by Attempts desc
+
+// 2. Password spray candidates: many accounts from one source
+ContainerAppConsoleLogs_CL
+| where TimeGenerated > ago(1h)
+| extend payload = parse_json(column_ifexists("Log_s", ""))
+| extend path = tostring(payload.path), account = tostring(payload.username), status = toint(payload.status_code), source = coalesce(tostring(payload.client_ip), column_ifexists("ClientIP_s", "unknown"))
+| where path has "/api/auth/login" and status in (400, 401, 422, 429)
+| summarize Accounts=dcount(account), Attempts=count(), FirstSeen=min(TimeGenerated), LastSeen=max(TimeGenerated) by source
+| where Accounts >= 3 and Attempts >= 8
+| order by Attempts desc
+
+// 3. Suspicious successful login after repeated failures
+let failed = ContainerAppConsoleLogs_CL
+| where TimeGenerated > ago(30m)
+| extend payload = parse_json(column_ifexists("Log_s", ""))
+| extend status = toint(payload.status_code), source = coalesce(tostring(payload.client_ip), column_ifexists("ClientIP_s", "unknown"))
+| where status in (400, 401, 422, 429)
+| summarize Failures=count(), LastFailure=max(TimeGenerated) by source;
+ContainerAppConsoleLogs_CL
+| where TimeGenerated > ago(15m)
+| extend payload = parse_json(column_ifexists("Log_s", ""))
+| extend status = toint(payload.status_code), source = coalesce(tostring(payload.client_ip), column_ifexists("ClientIP_s", "unknown"))
+| where status == 200 and tostring(payload.path) has "/api/auth/login"
+| join kind=inner failed on source
+| where Failures >= 5 and TimeGenerated > LastFailure
+| project TimeGenerated, source, Failures, LastFailure
+
+// 4. API abuse and enumeration
+ContainerAppConsoleLogs_CL
+| where TimeGenerated > ago(1h)
+| extend payload = parse_json(column_ifexists("Log_s", ""))
+| extend path = tostring(payload.path), status = toint(payload.status_code), source = coalesce(tostring(payload.client_ip), column_ifexists("ClientIP_s", "unknown"))
+| where path has "/api/"
+| summarize Requests=count(), DistinctPaths=dcount(path), ErrorResponses=countif(status >= 400), FirstSeen=min(TimeGenerated), LastSeen=max(TimeGenerated) by source
+| where Requests >= 100 or DistinctPaths >= 20
+| order by Requests desc
+
+// 5. Privilege boundary probing
+ContainerAppConsoleLogs_CL
+| where TimeGenerated > ago(1h)
+| extend payload = parse_json(column_ifexists("Log_s", ""))
+| extend path = tostring(payload.path), status = toint(payload.status_code), source = coalesce(tostring(payload.client_ip), column_ifexists("ClientIP_s", "unknown"))
+| where status == 403 or path has_any ("/admin", "/internal", "/debug")
+| summarize Probes=count(), Paths=make_set(path, 20), FirstSeen=min(TimeGenerated), LastSeen=max(TimeGenerated) by source
+| where Probes >= 5
+
+// 6. Cloud administrative changes
+AzureActivity
+| where TimeGenerated > ago(24h)
+| where ActivityStatusValue =~ "Success"
+| where OperationNameValue has_any ("/write", "/delete", "/action")
+| project TimeGenerated, Caller, OperationNameValue, ResourceGroup, ResourceId
+| order by TimeGenerated desc
+
+// 7. Telemetry health
+ContainerAppConsoleLogs_CL
+| summarize LastEvent=max(TimeGenerated), Events=count() by bin(TimeGenerated, 15m)
+| order by TimeGenerated desc
