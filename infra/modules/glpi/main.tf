@@ -130,6 +130,10 @@ resource "azurerm_container_app" "main" {
         value = "true"
       }
       env {
+        name  = "GLPI_DB_SSL_CAPATH"
+        value = "/etc/ssl/certs"
+      }
+      env {
         name  = "GLPI_SKIP_AUTOINSTALL"
         value = "false"
       }
