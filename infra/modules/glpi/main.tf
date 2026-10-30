@@ -98,6 +98,11 @@ resource "azurerm_container_app" "main" {
       cpu    = 0.5
       memory = "1Gi"
 
+      volume_mounts {
+        name = azurerm_container_app_environment_storage.glpi.name
+        path = "/var/glpi"
+      }
+
       env {
         name  = "GLPI_DB_HOST"
         value = var.database_host
