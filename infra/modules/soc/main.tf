@@ -16,7 +16,7 @@ locals {
       techniques   = ["T1110"]
     }
     auth_spray = {
-      display_name = "SOC - Password spraying across accounts"
+      display_name = "SOC - Password spray (repeated failed authentication)"
       description  = "Detects repeated authentication failures against multiple accounts from one source."
       query        = <<-KQL
         ContainerAppConsoleLogs_CL
