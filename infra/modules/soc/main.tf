@@ -60,6 +60,6 @@ resource "azurerm_sentinel_alert_rule_scheduled" "rule" {
   tactics                    = each.value.tactics
   techniques                 = each.value.techniques
   custom_details = {
-    scenario = "secure-commerce-soc"
+    scenario = "secureCommerceSoc"
   }
 }
