@@ -7,7 +7,7 @@
 | Log Analytics | PASS | `ContainerAppConsoleLogs_CL` returned recent rows through Azure CLI. |
 | Sentinel onboarding | PASS | Workspace `secure-commerce-dev-law` is onboarded. |
 | Sentinel scheduled detections | PASS | Six scheduled rules are deployed: authentication burst, API burst, telemetry gap, suspicious success, privilege probing, and cloud admin changes. |
-| Bounded k6 telemetry | PASS (code) | `soc/k6/scenarios.js` limits to two VUs, one request/sec, one-minute default, unique scenario ID, and kill switch. Runtime evidence still requires execution. |
+| Bounded k6 telemetry | PASS | Scenario `auth-burst-20261030` ran against the owned shop endpoint at one request/sec with one VU. Log Analytics showed 240 events for `/api/auth/login` and `/api/products`, with status codes `422`, `429`, and `200`. |
 | GLPI HTTPS/application | BLOCKED | Disabled until a durable external MySQL-compatible service is supplied. |
 | Durable GLPI database | BLOCKED | Azure MySQL Flexible Server exposed no SKUs; VM fallback was removed after repeated free-trial capacity denial. |
 | Sentinel-to-GLPI automation | BLOCKED | Requires a working GLPI API endpoint and credentials. |

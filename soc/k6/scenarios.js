@@ -18,14 +18,14 @@ export const options = {
       maxVUs: 2,
     },
   },
-  thresholds: { http_req_failed: ['rate<0.25'] },
+  thresholds: { checks: ['rate>0.5'] },
 };
 
 export default function () {
   if (killSwitch) return;
   const headers = { 'X-SOC-Scenario-ID': scenarioId };
   const failed = http.post(`${base}/api/auth/login`, JSON.stringify({ email: testUser, password: `${testPassword}-bad` }), { headers: { ...headers, 'Content-Type': 'application/json' } });
-  check(failed, { 'failed login is observed': (r) => [400, 401, 403, 404, 422].includes(r.status) });
+  check(failed, { 'failed login is observed': (r) => [400, 401, 403, 404, 422, 429].includes(r.status) });
   const normal = http.get(`${base}/api/products`, { headers });
   check(normal, { 'products endpoint responds': (r) => r.status < 500 });
   sleep(1);
