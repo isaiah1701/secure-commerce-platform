@@ -248,30 +248,29 @@ resource "azurerm_logic_app_action_custom" "create_if_missing" {
             input = {
               name              = "[SOC LAB] Sentinel incident @{triggerBody()?['object']?['properties']?['incidentNumber']} - @{triggerBody()?['object']?['properties']?['title']}"
               content           = <<-EOT
-                SOC CASE — REVIEW IN MICROSOFT SENTINEL
+                SOC CASE — WHAT I NEED YOU TO WORK OUT
 
-                What happened: Sentinel detected activity involving the online commerce application. This can affect customer sign-in, customer accounts, product administration, or orders, but the alert does not prove malicious activity or successful access. Confirm the facts in Sentinel and Log Analytics.
+                Sentinel has flagged @{triggerBody()?['object']?['properties']?['title']} against the online shop. The activity could affect customer sign-in, accounts, product administration, or orders, but we do not yet know whether it was malicious or successful. Your job is to check the evidence and make that call.
 
-                INCIDENT
-                - Sentinel incident: @{triggerBody()?['object']?['properties']?['incidentNumber']}
-                - Severity: @{triggerBody()?['object']?['properties']?['severity']}
-                - Detection rule: @{triggerBody()?['object']?['properties']?['title']}
-                - UTC window: @{coalesce(triggerBody()?['object']?['properties']?['firstActivityTimeUtc'], triggerBody()?['object']?['properties']?['createdTimeUtc'])} to @{coalesce(triggerBody()?['object']?['properties']?['lastActivityTimeUtc'], triggerBody()?['object']?['properties']?['createdTimeUtc'])}
-                - Sentinel: @{triggerBody()?['object']?['properties']?['incidentUrl']}
-                - Log Analytics workspace: https://portal.azure.com/#view/Microsoft_Azure_Monitoring_Logs/LogsBlade/resourceId/%2Fsubscriptions%2F43adc2c2-0fd5-4474-aa8a-9f32f541e4b7%2FresourceGroups%2Fsecure-commerce-dev-rg%2Fproviders%2FMicrosoft.OperationalInsights%2Fworkspaces%2Fsecure-commerce-dev-law
+                CASE DETAILS
+                - Incident: @{triggerBody()?['object']?['properties']?['incidentNumber']} | Severity: @{triggerBody()?['object']?['properties']?['severity']}
+                - Rule: @{triggerBody()?['object']?['properties']?['title']}
+                - Activity: @{coalesce(triggerBody()?['object']?['properties']?['firstActivityTimeUtc'], triggerBody()?['object']?['properties']?['createdTimeUtc'])} to @{coalesce(triggerBody()?['object']?['properties']?['lastActivityTimeUtc'], triggerBody()?['object']?['properties']?['createdTimeUtc'])} UTC
+                - Open the incident: @{triggerBody()?['object']?['properties']?['incidentUrl']}
+                - Open the logs: https://portal.azure.com/#view/Microsoft_Azure_Monitoring_Logs/LogsBlade/resourceId/%2Fsubscriptions%2F43adc2c2-0fd5-4474-aa8a-9f32f541e4b7%2FresourceGroups%2Fsecure-commerce-dev-rg%2Fproviders%2FMicrosoft.OperationalInsights%2Fworkspaces%2Fsecure-commerce-dev-law
 
-                OBJECTIVE
-                @{if(contains(toLower(string(triggerBody()?['object']?['properties']?['title'])),'rate'), 'Determine whether authentication throttling worked, how many requests were blocked, and whether legitimate traffic was affected.', if(contains(toLower(string(triggerBody()?['object']?['properties']?['title'])),'privilege'), 'Determine whether authorization blocked the restricted operation and whether any privileged action succeeded.', if(contains(toLower(string(triggerBody()?['object']?['properties']?['title'])),'failed'), 'Determine the targeted identity, source pattern, lockout behavior, and whether authentication later succeeded.', if(contains(toLower(string(triggerBody()?['object']?['properties']?['title'])),'suspicious'), 'Determine whether the request pattern was probing or exploitation and whether application controls worked.', 'Reconstruct the related event sequence and decide whether the combined activity changes severity.'))))}
+                YOUR QUESTION
+                @{if(contains(toLower(string(triggerBody()?['object']?['properties']?['title'])),'rate'), 'Did the login throttle work, how much traffic was blocked, and could a genuine customer have been affected?', if(contains(toLower(string(triggerBody()?['object']?['properties']?['title'])),'privilege'), 'Was the restricted action blocked, who tried it, and did anything privileged actually succeed?', if(contains(toLower(string(triggerBody()?['object']?['properties']?['title'])),'failed'), 'Who or what was being targeted, did the lockout work, and did any login succeed afterwards?', if(contains(toLower(string(triggerBody()?['object']?['properties']?['title'])),'suspicious'), 'Was this harmless probing or an attempt to exploit the application, and what did the controls do?', 'What happened first, what followed, and does the combined sequence change the risk?'))))}
 
-                INVESTIGATION — MAXIMUM FIVE STEPS
-                1. Open the Sentinel link; verify the incident, rule, severity, alert entities, and UTC window.
-                2. In the linked Log Analytics workspace, reproduce the incident-window query from the [SOC runbook](https://github.com/isaiah1701/secure-commerce-platform/blob/main/docs/soc/runbook.md). Use the incident timestamps, not relative ago() windows.
-                3. Build a timeline and record affected resources, source addresses, request IDs, simulation IDs, endpoints, and successful versus blocked outcomes.
-                4. Review related activity before and after the window; distinguish confirmed facts from hypotheses and unknowns.
-                5. Record the classification, impact assessment, confidence, recommended action, and escalation decision in GLPI.
+                HOW TO HANDLE IT
+                1. Open Sentinel and read the incident, rule, entities, severity, and time window.
+                2. Open the Log Analytics workspace and run the fixed-window query from the [SOC runbook](https://github.com/isaiah1701/secure-commerce-platform/blob/main/docs/soc/runbook.md).
+                3. Write a short timeline: sources, identities/resources, endpoints, request IDs, and successful versus blocked actions.
+                4. Check nearby activity and state what is confirmed, what is only suspected, and what is unknown.
+                5. Record your classification, impact, confidence, recommended action, and escalation decision here.
 
-                DEFINITION OF DONE
-                Evidence and rule verified; timeline documented; affected resources identified or marked unknown; successful and failed activity assessed; classification and potential impact justified; supporting evidence linked; escalation completed or explicitly ruled out; final findings recorded. Leave this ticket open until an authorized analyst completes the review. Automation never closes the case.
+                READY TO CLOSE WHEN
+                You have verified the evidence and rule, documented the timeline and affected resources, assessed outcomes and impact, justified the classification, linked supporting evidence, and either escalated or clearly ruled escalation out. Keep this case open until an authorized analyst records the final finding. Automation does not close it.
               EOT
               itilcategories_id = 0
               priority          = 3
