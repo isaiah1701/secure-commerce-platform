@@ -87,7 +87,7 @@ locals {
         ContainerAppConsoleLogs_CL
         | where TimeGenerated > ago(10m)
         | extend payload=parse_json(Log_s), event_type=tostring(payload.event_type), status=toint(payload.status_code), source=tostring(payload.source_ip), simulation_id=tostring(payload.simulation_id)
-        | where event_type == "RATE_LIMIT_EXCEEDED" or (event_type == "HTTP_REQUEST" and status == 429)
+        | where isnotempty(simulation_id) and (event_type == "RATE_LIMIT_EXCEEDED" or (event_type == "HTTP_REQUEST" and status == 429))
         | summarize RateLimitedCount=count(), FirstSeen=min(TimeGenerated), LastSeen=max(TimeGenerated), RequestIds=make_set(tostring(payload.request_id), 20) by source, simulation_id
         | where RateLimitedCount >= 1
       KQL
