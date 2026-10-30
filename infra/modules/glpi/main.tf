@@ -142,28 +142,6 @@ resource "azurerm_container_app" "main" {
 
     }
 
-    container {
-      name   = "mariadb"
-      image  = "mariadb:10.11"
-      cpu    = 0.5
-      memory = "1Gi"
-      env {
-        name  = "MARIADB_DATABASE"
-        value = var.database_name
-      }
-      env {
-        name  = "MARIADB_USER"
-        value = var.database_user
-      }
-      env {
-        name        = "MARIADB_PASSWORD"
-        secret_name = "database-password"
-      }
-      env {
-        name        = "MARIADB_ROOT_PASSWORD"
-        secret_name = "database-password"
-      }
-    }
   }
 }
 

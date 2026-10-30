@@ -91,32 +91,6 @@ module "container_app" {
   depends_on = [module.key_vault]
 }
 
-module "glpi_database_vm" {
-  count  = var.enable_glpi ? 1 : 0
-  source = "./modules/glpi-database-vm"
-
-  name                          = "${local.prefix}-glpi-db"
-  location                      = var.glpi_database_location
-  resource_group_name           = azurerm_resource_group.main.name
-  peer_vnet_id                  = module.network.vnet_id
-  peer_vnet_name                = "${local.prefix}-vnet"
-  peer_vnet_resource_group_name = azurerm_resource_group.main.name
-  admin_password                = var.glpi_vm_admin_password
-  database_password             = var.glpi_database_password
-  log_analytics_workspace_id    = module.monitoring.log_analytics_workspace_id
-  tags                          = merge(local.tags, { Workload = "glpi-soc" })
-}
-
-resource "azurerm_virtual_network_peering" "commerce_to_glpi_db" {
-  count                        = var.enable_glpi ? 1 : 0
-  name                         = "${local.prefix}-to-glpi-db"
-  resource_group_name          = azurerm_resource_group.main.name
-  virtual_network_name         = "${local.prefix}-vnet"
-  remote_virtual_network_id    = module.glpi_database_vm[0].vnet_id
-  allow_virtual_network_access = true
-  allow_forwarded_traffic      = true
-}
-
 module "glpi" {
   count  = var.enable_glpi ? 1 : 0
   source = "./modules/glpi"
@@ -127,7 +101,7 @@ module "glpi" {
   resource_group_name          = azurerm_resource_group.main.name
   container_app_environment_id = module.container_app.container_app_environment_id
   key_vault_id                 = module.key_vault.key_vault_id
-  database_host                = module.glpi_database_vm[0].private_ip_address
+  database_host                = var.glpi_database_host
   database_name                = "glpi"
   database_user                = "glpiadmin"
   database_password            = var.glpi_database_password
@@ -137,6 +111,15 @@ module "glpi" {
   subdomain                    = "ticket"
   tags                         = merge(local.tags, { Workload = "glpi-soc" })
 
+}
+
+module "soc" {
+  source = "./modules/soc"
+
+  name_prefix                = local.prefix
+  log_analytics_workspace_id = module.monitoring.log_analytics_workspace_id
+  enable                     = var.enable_soc
+  tags                       = local.tags
 }
 
 module "dns" {

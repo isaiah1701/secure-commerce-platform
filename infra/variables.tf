@@ -90,12 +90,6 @@ variable "enable_glpi" {
   default     = false
 }
 
-variable "glpi_database_location" {
-  description = "Region for the durable GLPI MariaDB VM."
-  type        = string
-  default     = "North Europe"
-}
-
 variable "glpi_database_password" {
   description = "GLPI MySQL administrator/application password."
   type        = string
@@ -108,21 +102,16 @@ variable "glpi_database_password" {
   }
 }
 
-variable "glpi_vm_admin_password" {
-  description = "Linux admin password for the private GLPI database VM."
+variable "glpi_database_host" {
+  description = "External managed MySQL-compatible hostname for GLPI."
   type        = string
-  sensitive   = true
   default     = null
-  validation {
-    condition     = var.glpi_vm_admin_password == null || length(var.glpi_vm_admin_password) >= 16
-    error_message = "glpi_vm_admin_password must be at least 16 characters when GLPI is enabled."
-  }
 }
 
-variable "glpi_mysql_sku_name" {
-  description = "GLPI MySQL Flexible Server compute SKU."
-  type        = string
-  default     = "B_Standard_B1ms"
+variable "enable_soc" {
+  description = "Deploy Sentinel scheduled detections."
+  type        = bool
+  default     = true
 }
 
 variable "glpi_image" {
