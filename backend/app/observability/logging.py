@@ -17,6 +17,7 @@ class JsonFormatter(logging.Formatter):
         for key in (
             "event_type", "request_id", "method", "path", "status_code",
             "duration_ms", "user_id", "user_role", "source_ip", "user_agent", "email_hash",
+            "simulation_id",
         ):
             value = getattr(record, key, None)
             if value is not None:
@@ -39,6 +40,7 @@ def security_event(request, event_type: str, message: str, level: int = logging.
     context = {
         "event_type": event_type,
         "request_id": getattr(request.state, "request_id", None),
+        "simulation_id": getattr(request.state, "simulation_id", None),
         "source_ip": request.client.host if request.client else None,
         "user_agent": request.headers.get("user-agent", "")[:300],
         **fields,

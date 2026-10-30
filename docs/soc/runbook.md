@@ -13,7 +13,13 @@ Use application-level rate limiting and credential rotation for commerce cases. 
 
 ## GLPI handoff
 
-Automatic ticket creation is intentionally disabled while GLPI has no durable database. Once a durable MySQL-compatible endpoint is supplied, enable GLPI, validate HTTPS, create a test ticket, recreate both workloads, and verify the ticket remains before wiring Sentinel to GLPI.
+GLPI is now durable and its public login page is operational. Ticket creation
+through the GLPI API remains disabled until the API is explicitly enabled with
+an authenticated, restricted integration account. Do not paste administrator
+passwords into a workflow. The planned playbook will retrieve its integration
+secret from Key Vault, create one open investigation ticket per Sentinel
+incident, preserve the Sentinel incident URL and simulation identifier, and
+leave investigation tasks incomplete for Muhammad.
 
 ## Evidence and closure
 

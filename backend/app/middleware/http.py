@@ -16,6 +16,8 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         supplied = request.headers.get("x-request-id", "")
         request.state.request_id = supplied if REQUEST_ID_RE.fullmatch(supplied) else str(uuid.uuid4())
+        simulation_id = request.headers.get("x-soc-scenario-id", "")
+        request.state.simulation_id = simulation_id if REQUEST_ID_RE.fullmatch(simulation_id) else None
         request.state.user_id = None
         request.state.user_role = None
         started = time.perf_counter()
@@ -43,6 +45,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
             extra={
                 "event_type": "HTTP_REQUEST",
                 "request_id": request.state.request_id,
+                "simulation_id": request.state.simulation_id,
                 "method": request.method,
                 "path": request.url.path,
                 "status_code": response.status_code,

@@ -6,9 +6,10 @@ locals {
       query        = <<-KQL
         ContainerAppConsoleLogs_CL
         | where TimeGenerated > ago(10m)
-        | where column_ifexists("Log_s", "") has_any ("401", "invalid credentials", "login failed", "authentication failed")
-        | summarize FailureCount=count(), FirstSeen=min(TimeGenerated), LastSeen=max(TimeGenerated) by SourceIP=column_ifexists("ClientIP_s", "unknown")
-        | where FailureCount >= 8
+        | extend payload=parse_json(Log_s), event_type=tostring(payload.event_type), source=tostring(payload.source_ip), simulation_id=tostring(payload.simulation_id)
+        | where event_type in ("AUTH_LOGIN_FAILURE", "AUTH_ACCOUNT_LOCKED")
+        | summarize FailureCount=countif(event_type == "AUTH_LOGIN_FAILURE"), Locked=countif(event_type == "AUTH_ACCOUNT_LOCKED"), FirstSeen=min(TimeGenerated), LastSeen=max(TimeGenerated), RequestIds=make_set(tostring(payload.request_id), 20) by source, simulation_id
+        | where FailureCount >= 5 or Locked >= 1
       KQL
       severity     = "Medium"
       tactics      = ["CredentialAccess"]
@@ -20,8 +21,10 @@ locals {
       query        = <<-KQL
         ContainerAppConsoleLogs_CL
         | where TimeGenerated > ago(10m)
-        | summarize RequestCount=count(), FirstSeen=min(TimeGenerated), LastSeen=max(TimeGenerated) by SourceIP=column_ifexists("ClientIP_s", "unknown"), App=column_ifexists("ContainerAppName_s", "unknown")
-        | where RequestCount >= 200
+        | extend payload=parse_json(Log_s), event_type=tostring(payload.event_type), source=tostring(payload.source_ip), simulation_id=tostring(payload.simulation_id)
+        | where event_type == "HTTP_REQUEST"
+        | summarize RequestCount=count(), FirstSeen=min(TimeGenerated), LastSeen=max(TimeGenerated), Paths=make_set(tostring(payload.path), 20) by source, simulation_id
+        | where RequestCount >= 50
       KQL
       severity     = "Low"
       tactics      = ["Discovery"]
@@ -33,13 +36,14 @@ locals {
       query        = <<-KQL
         let failures = ContainerAppConsoleLogs_CL
           | where TimeGenerated > ago(15m)
-          | where column_ifexists("Log_s", "") has_any ("401", "login failed", "authentication failed")
-          | summarize FailureCount=count() by SourceIP=column_ifexists("ClientIP_s", "unknown");
+          | extend payload=parse_json(Log_s), event_type=tostring(payload.event_type), source=tostring(payload.source_ip), simulation_id=tostring(payload.simulation_id)
+          | where event_type == "AUTH_LOGIN_FAILURE"
+          | summarize FailureCount=count() by source, simulation_id;
         ContainerAppConsoleLogs_CL
         | where TimeGenerated > ago(10m)
-        | where column_ifexists("Log_s", "") has_any ("200", "login successful", "authenticated")
-        | extend SourceIP=column_ifexists("ClientIP_s", "unknown")
-        | join kind=inner (failures) on SourceIP
+        | extend payload=parse_json(Log_s), event_type=tostring(payload.event_type), source=tostring(payload.source_ip), simulation_id=tostring(payload.simulation_id)
+        | where event_type == "AUTH_LOGIN_SUCCESS"
+        | join kind=inner (failures) on source, simulation_id
         | where FailureCount >= 5
       KQL
       severity     = "High"
@@ -52,13 +56,44 @@ locals {
       query        = <<-KQL
         ContainerAppConsoleLogs_CL
         | where TimeGenerated > ago(10m)
-        | where column_ifexists("Log_s", "") has_any ("403", "forbidden", "permission denied", "admin")
-        | summarize ProbeCount=count(), FirstSeen=min(TimeGenerated), LastSeen=max(TimeGenerated) by SourceIP=column_ifexists("ClientIP_s", "unknown")
-        | where ProbeCount >= 10
+        | extend payload=parse_json(Log_s), event_type=tostring(payload.event_type), status=toint(payload.status_code), source=tostring(payload.source_ip), simulation_id=tostring(payload.simulation_id)
+        | where event_type == "AUTH_FORBIDDEN" or status == 403
+        | summarize ProbeCount=count(), FirstSeen=min(TimeGenerated), LastSeen=max(TimeGenerated), Paths=make_set(tostring(payload.path), 20) by source, simulation_id
+        | where ProbeCount >= 3
       KQL
       severity     = "Medium"
       tactics      = ["PrivilegeEscalation", "Discovery"]
       techniques   = ["T1548"]
+    }
+    suspicious_request = {
+      display_name = "SOC - Suspicious request pattern"
+      description  = "Detects safe lab requests matching the application's suspicious-pattern telemetry."
+      query        = <<-KQL
+        ContainerAppConsoleLogs_CL
+        | where TimeGenerated > ago(10m)
+        | extend payload=parse_json(Log_s), event_type=tostring(payload.event_type), source=tostring(payload.source_ip), simulation_id=tostring(payload.simulation_id)
+        | where event_type == "SUSPICIOUS_REQUEST"
+        | summarize SuspiciousCount=count(), FirstSeen=min(TimeGenerated), LastSeen=max(TimeGenerated), Paths=make_set(tostring(payload.path), 20), RequestIds=make_set(tostring(payload.request_id), 20) by source, simulation_id
+        | where SuspiciousCount >= 1
+      KQL
+      severity     = "Medium"
+      tactics      = ["InitialAccess", "Discovery"]
+      techniques   = ["T1190"]
+    }
+    auth_rate_limit = {
+      display_name = "SOC - Authentication rate limit triggered"
+      description  = "Detects application authentication requests rejected by the rate limiter."
+      query        = <<-KQL
+        ContainerAppConsoleLogs_CL
+        | where TimeGenerated > ago(10m)
+        | extend payload=parse_json(Log_s), event_type=tostring(payload.event_type), status=toint(payload.status_code), source=tostring(payload.source_ip), simulation_id=tostring(payload.simulation_id)
+        | where event_type == "RATE_LIMIT_EXCEEDED" or (event_type == "HTTP_REQUEST" and status == 429)
+        | summarize RateLimitedCount=count(), FirstSeen=min(TimeGenerated), LastSeen=max(TimeGenerated), RequestIds=make_set(tostring(payload.request_id), 20) by source, simulation_id
+        | where RateLimitedCount >= 1
+      KQL
+      severity     = "Medium"
+      tactics      = ["CredentialAccess"]
+      techniques   = ["T1110"]
     }
     cloud_change = {
       display_name = "SOC - Cloud administrative change"
