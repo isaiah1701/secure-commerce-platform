@@ -27,6 +27,54 @@ locals {
       tactics      = ["Discovery"]
       techniques   = ["T1046"]
     }
+    suspicious_success = {
+      display_name = "SOC - Successful authentication after failures"
+      description  = "Detects a success from a source that recently generated repeated failures."
+      query        = <<-KQL
+        let failures = ContainerAppConsoleLogs_CL
+          | where TimeGenerated > ago(15m)
+          | where column_ifexists("Log_s", "") has_any ("401", "login failed", "authentication failed")
+          | summarize FailureCount=count() by SourceIP=column_ifexists("ClientIP_s", "unknown");
+        ContainerAppConsoleLogs_CL
+        | where TimeGenerated > ago(10m)
+        | where column_ifexists("Log_s", "") has_any ("200", "login successful", "authenticated")
+        | extend SourceIP=column_ifexists("ClientIP_s", "unknown")
+        | join kind=inner (failures) on SourceIP
+        | where FailureCount >= 5
+      KQL
+      severity     = "High"
+      tactics      = ["CredentialAccess"]
+      techniques   = ["T1078"]
+    }
+    privilege_probe = {
+      display_name = "SOC - Privilege boundary probing"
+      description  = "Detects repeated forbidden responses against protected commerce endpoints."
+      query        = <<-KQL
+        ContainerAppConsoleLogs_CL
+        | where TimeGenerated > ago(10m)
+        | where column_ifexists("Log_s", "") has_any ("403", "forbidden", "permission denied", "admin")
+        | summarize ProbeCount=count(), FirstSeen=min(TimeGenerated), LastSeen=max(TimeGenerated) by SourceIP=column_ifexists("ClientIP_s", "unknown")
+        | where ProbeCount >= 10
+      KQL
+      severity     = "Medium"
+      tactics      = ["PrivilegeEscalation", "Discovery"]
+      techniques   = ["T1548"]
+    }
+    cloud_change = {
+      display_name = "SOC - Cloud administrative change"
+      description  = "Detects successful administrative changes delivered to the workspace."
+      query        = <<-KQL
+        AzureActivity
+        | where TimeGenerated > ago(10m)
+        | where ActivityStatusValue =~ "Success"
+        | where OperationNameValue has_any ("write", "delete", "action")
+        | summarize ChangeCount=count(), FirstSeen=min(TimeGenerated), LastSeen=max(TimeGenerated) by Caller, ResourceGroup
+        | where ChangeCount >= 1
+      KQL
+      severity     = "Low"
+      tactics      = ["Persistence"]
+      techniques   = ["T1098"]
+    }
     telemetry_gap = {
       display_name = "SOC - Commerce telemetry gap"
       description  = "Detects when expected commerce console telemetry stops arriving."
