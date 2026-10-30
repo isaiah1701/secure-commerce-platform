@@ -46,3 +46,7 @@ The live `soc-automation` GLPI profile was tested against `TicketTask` and retur
 - Correlated activity: reconstruct the sequence and correlate source, identity, request ID, and simulation ID; reassess severity if failures precede success or probing.
 
 Escalations include incident ID, fixed time window, timeline, scope, evidence links, impact, confidence, and requested action. The escalation owner/group is not configured in the current GLPI deployment and remains an operational gap.
+
+## Concise GLPI handoff
+
+GLPI is intentionally limited to a short case handoff: plain-English briefing, incident number/severity/rule/window, Sentinel link, Log Analytics workspace link, one detection-specific objective, five analyst steps, and a short Definition of Done. Full evidence, correlation, and KQL remain in Sentinel/Log Analytics and the version-controlled runbook. Do not paste query JSON into GLPI.

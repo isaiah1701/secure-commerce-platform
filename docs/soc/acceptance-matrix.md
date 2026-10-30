@@ -30,3 +30,14 @@
 | Native GLPI tasks | NOT AVAILABLE | `POST /TicketTask/` returned `ERROR_RIGHT_MISSING` for `soc-automation`; native follow-up creation is verified and is the supported fallback. |
 | Final bounded k6 telemetry | PASS | auth-lockout 61 events; privilege-probe 120; suspicious-api 30; auth-rate-limit 697; multi-event 240. |
 | Five fresh Sentinel incidents after final patch | INCOMPLETE | Existing scheduled-rule suppression prevented new incidents while the prior incident remained open; prior incidents 17–21 remain earlier vertical-slice evidence. |
+
+## Concise-ticket validation
+
+| Check | Result | Evidence |
+|---|---|---|
+| Live ticket body size | PASS | Deployed `Create_GLPI_Ticket` content is 295 words, measured from the live Logic App definition. |
+| Sentinel-first structure | PASS | Body contains direct Sentinel and Log Analytics links, one runtime-selected objective, five steps, and concise closure criteria. |
+| Incident-context query | PASS | Query now derives rule context from the incident title and filters relevant event types/statuses/paths before summarizing. Real incident-22 and incident-23 query executions returned successful results. |
+| Real incident 22 replay | PASS | Run `08584082416064401006944809743CU57`: evidence query succeeded; duplicate branch skipped creation. |
+| Subsequent genuine incident 23 replay | PASS | Run `08584082415971204765685484242CU23`: evidence query succeeded; duplicate branch skipped creation. |
+| Final creation branch after simplification | PENDING | Incidents 22 and 23 already had preserved tickets, so replay correctly exercised suppression. The next unsuppressed genuine Sentinel incident is required to observe the revised creation branch without fabricating a ticket. |

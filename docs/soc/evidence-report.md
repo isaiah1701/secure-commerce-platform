@@ -95,3 +95,28 @@ The five fresh Sentinel incidents are explicitly incomplete for the final-patch
 acceptance gate. No incident or GLPI ticket was manually fabricated to hide
 that gap; wait for the existing Sentinel suppression interval to expire, then
 rerun the same bounded simulations and complete the evidence table.
+
+## Concise-ticket rebuild
+
+The GLPI body was reduced to 295 words. It now contains only the incident
+briefing, incident number/severity/rule/window, direct Sentinel and Log
+Analytics links, one title-selected objective, five investigation steps, and a
+Definition of Done. The live Logic App definition was measured directly after
+deployment. Full query results and JSON are no longer inserted into GLPI.
+
+The evidence action now uses the incident title to select relevant context:
+rate-limit events and 429s, privilege/403 events, failed-auth and lockout
+events, suspicious requests/non-health API requests, or a broad fallback for
+other detections. It retains fixed incident timestamps, managed identity,
+Key Vault retrieval, retry policy, and duplicate prevention.
+
+Validation after deployment:
+
+| Genuine incident | Logic App run | Evidence query | Creation result |
+|---|---|---|---|
+| 22 — Suspicious API request burst | `08584082416064401006944809743CU57` | Succeeded | Existing ticket found; creation skipped |
+| 23 — Repeated failed authentication | `08584082415971204765685484242CU23` | Succeeded | Existing ticket found; creation skipped |
+
+These replays intentionally preserved tickets 12 and 13 and exercised duplicate
+suppression. A new creation-branch observation remains pending until the next
+unsuppressed genuine incident; no duplicate or fabricated ticket was created.
