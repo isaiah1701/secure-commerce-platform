@@ -17,3 +17,16 @@
 | Sentinel-to-GLPI automation | PASS (trigger and replay) | Native Sentinel trigger is deployed; Logic App run `08584082471491068316023616235CU60` succeeded and created GLPI ticket 1 for incident 17. Replaying the same incident left GLPI search `totalcount=1`. |
 | GLPI authenticated integration | PASS | Dedicated restricted GLPI account authenticated successfully after password and application-token rotation; values are stored in Key Vault and retrieved by the Logic App managed identity. |
 | Endpoint security/EDR | NOT STARTED | Requires a licensing check and separate approval for any paid endpoint service. |
+
+## Rebuild validation (2026-10-30)
+
+| Check | Result | Evidence |
+|---|---|---|
+| SOAR deployment | PASS | Targeted Terraform apply: 0 destroyed, 0 unrelated changes; Logic App `secure-commerce-dev-soc-glpi-playbook` and native Sentinel automation rule deployed. |
+| Key Vault and GLPI authentication | PASS | Runs `08584082431393076819313742315CU25` and `08584082431190627441314503497CU17`: secret retrieval and `Init_GLPI_Session` succeeded. |
+| Log Analytics enrichment | PASS | Same runs: `Query_Commerce_Evidence` succeeded with managed identity. |
+| Duplicate prevention | PASS | Replay run `08584082431190627441314503497CU17` found the existing incident-21 ticket and skipped `Create_GLPI_Ticket`; GLPI search remained one result. |
+| Final-format automatic ticket | PARTIAL | Ticket 12 for real incident 22 was created by run `08584082431393076819313742315CU25` before final content enrichment. An additive automation-owned follow-up was verified; no new incident was fabricated. |
+| Native GLPI tasks | NOT AVAILABLE | `POST /TicketTask/` returned `ERROR_RIGHT_MISSING` for `soc-automation`; native follow-up creation is verified and is the supported fallback. |
+| Final bounded k6 telemetry | PASS | auth-lockout 61 events; privilege-probe 120; suspicious-api 30; auth-rate-limit 697; multi-event 240. |
+| Five fresh Sentinel incidents after final patch | INCOMPLETE | Existing scheduled-rule suppression prevented new incidents while the prior incident remained open; prior incidents 17–21 remain earlier vertical-slice evidence. |

@@ -28,3 +28,21 @@ the pipeline test only; it is not a real external attack.
 ## Evidence and closure
 
 Record the KQL text, UTC window, alert name, screenshots or exported rows, action taken, and validation result in the case record. Close only when the signal has stopped or the accepted risk is documented.
+
+## Automation-owned ticket architecture
+
+The deployed Terraform module `module.soar[0]` uses the native Microsoft Sentinel incident trigger. The Logic App retrieves the dedicated GLPI credentials from Key Vault through its system-assigned managed identity, queries `ContainerAppConsoleLogs_CL` through the Azure Monitor Logs API, searches GLPI by incident ID derived from `incidentUrl` or by incident number, and creates one open ticket when no match exists. It never closes the incident or marks analyst work complete.
+
+Generated cases contain a briefing, incident metadata, business relevance, evidence snapshot, fixed UTC-window KQL, timeline/context/scenario/correlation queries, five scenario playbooks, Tier 1 authorization boundaries, escalation criteria, and a Definition of Done. A successful Logic App run is an automation result, not case resolution.
+
+The live `soc-automation` GLPI profile was tested against `TicketTask` and returned `ERROR_RIGHT_MISSING`. The supported fallback is a structured ticket body plus native GLPI follow-ups. A GLPI administrator may grant task permission later; the workflow must not auto-complete analyst work.
+
+## Scenario-specific decisions
+
+- Authentication failures/lockout: prove attempts, targeted accounts, sources, lockout, success, other accounts, and brute force/password spraying versus benign activity.
+- Authentication rate limiting: prove endpoint, volume, duration, HTTP 429 count, accepted requests, source concentration, and legitimate impact.
+- Privilege boundary probing: prove restricted endpoints, identity/permissions, 403 count, privileged success, and authorization enforcement.
+- Suspicious API activity: use safe path/parameter representations, determine probing versus exploitation, response outcomes, validation, and related activity.
+- Correlated activity: reconstruct the sequence and correlate source, identity, request ID, and simulation ID; reassess severity if failures precede success or probing.
+
+Escalations include incident ID, fixed time window, timeline, scope, evidence links, impact, confidence, and requested action. The escalation owner/group is not configured in the current GLPI deployment and remains an operational gap.

@@ -178,14 +178,14 @@ resource "azurerm_logic_app_action_custom" "query_log_analytics" {
     type = "Http"
     inputs = {
       method  = "POST"
-      uri     = "https://api.loganalytics.io/v1/workspaces/${var.workspace_customer_id}/query"
+      uri     = "https://api.loganalytics.azure.com/v1/workspaces/${var.workspace_customer_id}/query"
       headers = { "Content-Type" = "application/json" }
       authentication = {
         type     = "ManagedServiceIdentity"
         audience = "https://api.loganalytics.io"
       }
       body = {
-        query = "ContainerAppConsoleLogs_CL | where TimeGenerated > ago(30m) | extend payload=parse_json(Log_s) | project TimeGenerated, event_type=tostring(payload.event_type), simulation_id=tostring(payload.simulation_id), source_ip=tostring(payload.source_ip), request_id=tostring(payload.request_id), path=tostring(payload.path), status_code=toint(payload.status_code) | order by TimeGenerated asc | take 100"
+        query = "let incident_start=datetime('@{coalesce(triggerBody()?['object']?['properties']?['firstActivityTimeUtc'], triggerBody()?['object']?['properties']?['createdTimeUtc'])}'); let incident_end=datetime('@{coalesce(triggerBody()?['object']?['properties']?['lastActivityTimeUtc'], triggerBody()?['object']?['properties']?['createdTimeUtc'])}'); ContainerAppConsoleLogs_CL | where TimeGenerated between (incident_start - 15m .. incident_end + 15m) | extend payload=parse_json(Log_s) | where isnotempty(tostring(payload.event_type)) | project TimeGenerated, event_type=tostring(payload.event_type), simulation_id=tostring(payload.simulation_id), source_ip=tostring(payload.source_ip), request_id=tostring(payload.request_id), path=tostring(payload.path), status_code=toint(payload.status_code) | summarize MatchingEvents=count(), EventTypes=make_set(event_type), StatusCodes=make_set(status_code), SourceIPs=make_set(source_ip), Endpoints=make_set(path), RequestIds=make_set(request_id), SimulationIds=make_set(simulation_id) by bin(TimeGenerated, 1m) | order by TimeGenerated asc"
       }
     }
     runAfter = { Init_GLPI_Session = ["Succeeded"] }
@@ -211,7 +211,11 @@ resource "azurerm_logic_app_action_custom" "search_existing_ticket" {
       queries = {
         "criteria[0][field]"      = "1"
         "criteria[0][searchtype]" = "contains"
-        "criteria[0][value]"      = "@{string(triggerBody()?['object']?['properties']?['incidentNumber'])}"
+        "criteria[0][value]"      = "@{string(coalesce(triggerBody()?['object']?['properties']?['incidentId'], last(split(triggerBody()?['object']?['properties']?['incidentUrl'], '/'))))}"
+        "criteria[1][field]"      = "1"
+        "criteria[1][searchtype]" = "contains"
+        "criteria[1][value]"      = "@{string(triggerBody()?['object']?['properties']?['incidentNumber'])}"
+        "criteria[1][link]"       = "OR"
       }
     }
     runAfter = { Query_Commerce_Evidence = ["Succeeded"] }
@@ -243,8 +247,86 @@ resource "azurerm_logic_app_action_custom" "create_if_missing" {
           body = {
             input = {
               name              = "[SOC LAB] Sentinel incident @{triggerBody()?['object']?['properties']?['incidentNumber']} - @{triggerBody()?['object']?['properties']?['title']}"
-              content           = "Controlled lab simulation.\n\nIncident summary\n- Sentinel incident: @{triggerBody()?['object']?['properties']?['incidentNumber']}\n- Severity: @{triggerBody()?['object']?['properties']?['severity']}\n- Created: @{triggerBody()?['object']?['properties']?['createdTimeUtc']}\n- Detection: @{triggerBody()?['object']?['properties']?['title']}\n- Direct URL: @{triggerBody()?['object']?['properties']?['incidentUrl']}\n\nAnalyst objective\nInvestigate the activity, establish scope and timeline, determine whether controls worked, and document an evidence-backed classification. Do not assume the activity is malicious.\n\nTools and navigation\n1. Microsoft Sentinel > Incidents > open the linked incident.\n2. Log Analytics > secure-commerce-dev-law > Logs.\n3. Application Insights > Logs if request details require enrichment.\n4. GLPI > record findings and attach exported evidence.\n\nRunnable KQL - timeline\nContainerAppConsoleLogs_CL\n| where TimeGenerated > ago(30m)\n| extend payload=parse_json(Log_s)\n| project TimeGenerated, event_type=tostring(payload.event_type), simulation_id=tostring(payload.simulation_id), source_ip=tostring(payload.source_ip), request_id=tostring(payload.request_id), path=tostring(payload.path), status_code=toint(payload.status_code)\n| order by TimeGenerated asc\n\nRunnable KQL - scope\nContainerAppConsoleLogs_CL\n| where TimeGenerated > ago(1h)\n| extend payload=parse_json(Log_s)\n| summarize Events=count(), EventTypes=make_set(tostring(payload.event_type)), Paths=make_set(tostring(payload.path), 20), Sources=make_set(tostring(payload.source_ip)) by tostring(payload.simulation_id)\n| order by Events desc\n\nInvestigation checklist\n[ ] Confirm the Sentinel rule, incident number, severity and time window.\n[ ] Run both KQL queries and record matching timestamps, source IPs, simulation IDs and request IDs.\n[ ] Determine whether requests were blocked, rate-limited, unauthorized, or successful.\n[ ] Check related activity before and after the alert window.\n[ ] Preserve query results or screenshots as evidence.\n[ ] Escalate if unauthorized activity succeeded, scope is unclear, or evidence indicates impact.\n\nInvestigation outcome - Muhammad to complete\n- Incident classification:\n- Scope:\n- Timeline:\n- Observed indicators:\n- Alternative explanations:\n- Impact:\n- Recommended containment:\n- Evidence links:\n- Confidence level:\n- Final analyst conclusion:\n\nClosure criteria\nLeave this ticket open until the investigation is complete, evidence is attached, findings are documented, and Sentinel status and GLPI status are updated by an authorized analyst."
+              content           = <<-EOT
+                SOC INVESTIGATION CASE
+
+                INCIDENT BRIEFING
+                The commerce application provides authentication, customer accounts, product administration and order processing. Sentinel detected this activity; the alert is not proof of an attack or successful access.
+
+                INCIDENT DETAILS
+                - Sentinel incident number: @{triggerBody()?['object']?['properties']?['incidentNumber']}
+                - Sentinel incident ID: @{coalesce(triggerBody()?['object']?['properties']?['incidentId'], last(split(triggerBody()?['object']?['properties']?['incidentUrl'], '/')))}
+                - Sentinel incident URL: @{triggerBody()?['object']?['properties']?['incidentUrl']}
+                - Detection rule: @{triggerBody()?['object']?['properties']?['title']}
+                - Severity: @{triggerBody()?['object']?['properties']?['severity']}
+                - First observed UTC: @{coalesce(triggerBody()?['object']?['properties']?['firstActivityTimeUtc'], triggerBody()?['object']?['properties']?['createdTimeUtc'])}
+                - Last observed UTC: @{coalesce(triggerBody()?['object']?['properties']?['lastActivityTimeUtc'], triggerBody()?['object']?['properties']?['createdTimeUtc'])}
+                - Evidence collected UTC: @{utcNow()}
+
+                BUSINESS IMPACT AND SECURITY RELEVANCE
+                If genuine, this activity could affect customer sign-in, account confidentiality, administrative product changes or order integrity. Do not claim compromise, customer impact or data exposure until verified.
+
+                EVIDENCE SNAPSHOT
+                @{string(body('Query_Commerce_Evidence'))}
+                Evidence limitation: only fields present in ContainerAppConsoleLogs_CL and the Sentinel trigger are available. Record missing identities or impact as unknown.
+
+                SCENARIO-SPECIFIC PLAYBOOK
+                1. Authentication failures and lockout: count attempts, identify accounts and sources, verify lockout and success, and distinguish brute force, password spraying or benign activity.
+                2. Authentication rate limiting: identify endpoint, volume, duration, HTTP 429 count, accepted requests, source concentration and legitimate impact.
+                3. Privilege boundary probing: identify restricted endpoints and identity, count HTTP 403 responses, verify permissions and privileged success, and assess authorization.
+                4. Suspicious API activity: identify flagged paths and safe request characteristics, source, responses, probing versus exploitation, validation and related activity. Do not copy executable payloads.
+                5. Correlated suspicious activity: reconstruct the sequence and correlate source, identity, request and simulation IDs; check failures followed by success or privilege probing.
+
+                REPRODUCIBLE KQL - EXACT MATCHING WINDOW
+                let incident_start=datetime(@{coalesce(triggerBody()?['object']?['properties']?['firstActivityTimeUtc'], triggerBody()?['object']?['properties']?['createdTimeUtc'])});
+                let incident_end=datetime(@{coalesce(triggerBody()?['object']?['properties']?['lastActivityTimeUtc'], triggerBody()?['object']?['properties']?['createdTimeUtc'])});
+                ContainerAppConsoleLogs_CL
+                | where TimeGenerated between (incident_start .. incident_end)
+                | extend payload=parse_json(Log_s)
+                | project TimeGenerated, event_type=tostring(payload.event_type), simulation_id=tostring(payload.simulation_id), source_ip=tostring(payload.source_ip), request_id=tostring(payload.request_id), path=tostring(payload.path), status_code=toint(payload.status_code)
+                | order by TimeGenerated asc
+
+                REPRODUCIBLE KQL - TIMELINE, CONTEXT AND CORRELATION
+                let incident_start=datetime(@{coalesce(triggerBody()?['object']?['properties']?['firstActivityTimeUtc'], triggerBody()?['object']?['properties']?['createdTimeUtc'])}); let incident_end=datetime(@{coalesce(triggerBody()?['object']?['properties']?['lastActivityTimeUtc'], triggerBody()?['object']?['properties']?['createdTimeUtc'])});
+                ContainerAppConsoleLogs_CL | where TimeGenerated between (incident_start - 15m .. incident_end + 15m) | extend payload=parse_json(Log_s) | project TimeGenerated, event_type=tostring(payload.event_type), simulation_id=tostring(payload.simulation_id), source_ip=tostring(payload.source_ip), request_id=tostring(payload.request_id), path=tostring(payload.path), status_code=toint(payload.status_code) | order by TimeGenerated asc
+
+                REPRODUCIBLE KQL - WIDER CONTEXT
+                let incident_start=datetime(@{coalesce(triggerBody()?['object']?['properties']?['firstActivityTimeUtc'], triggerBody()?['object']?['properties']?['createdTimeUtc'])}); let incident_end=datetime(@{coalesce(triggerBody()?['object']?['properties']?['lastActivityTimeUtc'], triggerBody()?['object']?['properties']?['createdTimeUtc'])});
+                ContainerAppConsoleLogs_CL | where TimeGenerated between (incident_start - 60m .. incident_end + 60m) | extend payload=parse_json(Log_s) | summarize Events=count(), EventTypes=make_set(tostring(payload.event_type)), StatusCodes=make_set(tostring(payload.status_code)), Sources=make_set(tostring(payload.source_ip)), Endpoints=make_set(tostring(payload.path)) by bin(TimeGenerated, 5m) | order by TimeGenerated asc
+
+                REPRODUCIBLE KQL - SCENARIO OUTCOME
+                let incident_start=datetime(@{coalesce(triggerBody()?['object']?['properties']?['firstActivityTimeUtc'], triggerBody()?['object']?['properties']?['createdTimeUtc'])}); let incident_end=datetime(@{coalesce(triggerBody()?['object']?['properties']?['lastActivityTimeUtc'], triggerBody()?['object']?['properties']?['createdTimeUtc'])});
+                ContainerAppConsoleLogs_CL | where TimeGenerated between (incident_start - 15m .. incident_end + 15m) | extend payload=parse_json(Log_s) | summarize Events=count(), StatusCodes=make_set(toint(payload.status_code)), Paths=make_set(tostring(payload.path)), EventTypes=make_set(tostring(payload.event_type)) by tostring(payload.simulation_id), tostring(payload.source_ip) | order by Events desc
+
+                REPRODUCIBLE KQL - CORRELATION
+                let incident_start=datetime(@{coalesce(triggerBody()?['object']?['properties']?['firstActivityTimeUtc'], triggerBody()?['object']?['properties']?['createdTimeUtc'])}); let incident_end=datetime(@{coalesce(triggerBody()?['object']?['properties']?['lastActivityTimeUtc'], triggerBody()?['object']?['properties']?['createdTimeUtc'])});
+                ContainerAppConsoleLogs_CL | where TimeGenerated between (incident_start - 60m .. incident_end + 60m) | extend payload=parse_json(Log_s) | project TimeGenerated, event_type=tostring(payload.event_type), simulation_id=tostring(payload.simulation_id), request_id=tostring(payload.request_id), source_ip=tostring(payload.source_ip), path=tostring(payload.path), status_code=toint(payload.status_code) | where isnotempty(simulation_id) or isnotempty(request_id) | order by TimeGenerated asc
+
+                ANALYST ACTIONS
+                Review Sentinel; reproduce the exact evidence; build the timeline; identify affected resources or unknowns; compare successful, blocked, failed and rate-limited activity; review related events; select and justify a Sentinel-supported classification; attach privacy-safe evidence; and document findings in GLPI follow-ups.
+                Native-task limitation: the soc-automation GLPI profile can create tickets but currently receives ERROR_RIGHT_MISSING for TicketTask creation. These actions are therefore intentionally presented as analyst-owned steps and follow-up notes, not auto-completed tasks. Grant the profile task permission only after an authorised GLPI administrator approves it.
+
+                AUTHORISATION AND ESCALATION
+                Tier 1 may review Sentinel, run read-only KQL, inspect telemetry, document observations, attach evidence, recommend containment and escalate. Tier 1 may not disable accounts, block IPs, modify production controls or detections, delete evidence or execute destructive response. Escalate unauthorized access, successful unauthorized privileged operations, data exposure, failed controls, multiple affected identities/services, serious uncertainty or ongoing threats. Escalation owner/group is unverified and must be recorded as an operational gap.
+
+                DEFINITION OF DONE
+                Verify alert and rule; reproduce evidence; document timeline and scope or unknowns; assess successful and failed activity; explain controls; choose and justify classification; attach evidence; escalate or explicitly rule out; document recommendations, uncertainties and final findings; reconcile GLPI and Sentinel by an authorized analyst. Automation success is not closure.
+
+                ANALYST FINDINGS
+                Classification:
+                Scope:
+                Timeline:
+                Control assessment:
+                Impact:
+                Confidence:
+                Escalation decision:
+                Recommended actions:
+                Outstanding uncertainties:
+                Final conclusion:
+              EOT
               itilcategories_id = 0
+              priority          = 3
+              users_id_recipient = 7
             }
           }
           retryPolicy = { type = "exponential", count = 3, interval = "PT10S" }

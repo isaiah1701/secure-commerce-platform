@@ -2,10 +2,11 @@ environment = "dev"
 location    = "UK South"
 
 # Set a short lowercase suffix if a globally unique ACR or Key Vault name is required.
-resource_suffix = ""
+resource_suffix = "43ad"
 
 enable_glpi         = true
 enable_soc          = true
+enable_soar         = true
 glpi_database_host  = null
 glpi_mysql_sku_name = "B_Standard_B1ms"
 glpi_image          = "securecommercedev43adc2acr.azurecr.io/glpi:11.0.12-azure8080"
