@@ -69,6 +69,23 @@ module "key_vault" {
   tags                                   = local.tags
 }
 
+module "mysql" {
+  count  = var.enable_glpi ? 1 : 0
+  source = "./modules/mysql"
+
+  name                       = "${local.prefix}-mysql"
+  location                   = azurerm_resource_group.main.location
+  resource_group_name        = azurerm_resource_group.main.name
+  delegated_subnet_id        = module.network.mysql_subnet_id
+  private_dns_zone_id        = module.network.mysql_private_dns_zone_id
+  administrator_login        = "glpiadmin"
+  administrator_password     = var.glpi_database_password
+  database_name              = "glpi"
+  sku_name                   = var.glpi_mysql_sku_name
+  log_analytics_workspace_id = module.monitoring.log_analytics_workspace_id
+  tags                       = local.tags
+}
+
 module "container_app" {
   source = "./modules/container-app"
 
@@ -101,7 +118,7 @@ module "glpi" {
   resource_group_name          = azurerm_resource_group.main.name
   container_app_environment_id = module.container_app.container_app_environment_id
   key_vault_id                 = module.key_vault.key_vault_id
-  database_host                = var.glpi_database_host
+  database_host                = coalesce(var.glpi_database_host, module.mysql[0].mysql_fqdn)
   database_name                = "glpi"
   database_user                = "glpiadmin"
   database_password            = var.glpi_database_password

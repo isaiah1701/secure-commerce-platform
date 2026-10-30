@@ -1,15 +1,11 @@
-# GLPI database handoff
+# GLPI database
 
-Azure Database for MySQL Flexible Server returned no provisionable SKUs for the tested UK South, North Europe, East US, and West Europe checks. The VM fallback has been removed.
+Azure MySQL Flexible Server is now available in UK South after the subscription upgrade. Terraform provisions a private `Standard_B1ms` server with a delegated subnet, private DNS, TLS enforcement, seven-day backups, and a `glpi` database. No VM or ephemeral database storage is used.
 
-Recommended free-trial-compatible provider: **Aiven for MySQL Free**. Aiven documents a $0/month plan with one CPU, 1 GB RAM, 1 GB storage, automated backups, and TLS. It does not require a credit card, has no time limit, and cannot be placed in a VPC or given a static IP. That means GLPI must use TLS and the provider's public endpoint; this is acceptable for this two-person training lab only if the provider's access controls and TLS certificate verification are enabled.
+Required secret:
 
-Required manual action:
+1. Confirm the GitHub Actions `GLPI_DATABASE_PASSWORD` environment secret is set and at least 16 characters.
+2. Terraform creates the server and GLPI Container App when `enable_glpi=true`.
+3. Complete the ticket, attachment, revision-replacement, and recovery persistence tests before enabling Sentinel-to-GLPI automation.
 
-1. Create an Aiven account and a MySQL Free service.
-2. Create a database named `glpi` and an application user with a unique password.
-3. Copy the TLS connection hostname, port, username, password, and CA certificate details.
-4. Add these as GitHub Actions environment secrets/variables, then set `enable_glpi=true` and `glpi_database_host` in `infra/environments/dev.tfvars`.
-5. Rerun Terraform and complete the GLPI acceptance tests.
-
-No service was purchased or created by this repository. The free tier is limited to 1 GB, so it is suitable for a small training queue rather than production.
+The server is a small Burstable Pay-As-You-Go resource intended for this training lab. It has recurring cost and no high-availability replica.

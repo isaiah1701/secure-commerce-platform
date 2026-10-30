@@ -138,6 +138,12 @@ variable "postgres_sku_name" {
   default     = "B_Standard_B1ms"
 }
 
+variable "glpi_mysql_sku_name" {
+  description = "Development-sized Azure MySQL Flexible Server SKU."
+  type        = string
+  default     = "B_Standard_B1ms"
+}
+
 variable "container_min_replicas" {
   description = "Minimum Container App replicas. Zero minimizes idle development cost."
   type        = number

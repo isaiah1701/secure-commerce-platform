@@ -4,9 +4,10 @@ location    = "UK South"
 # Set a short lowercase suffix if a globally unique ACR or Key Vault name is required.
 resource_suffix = ""
 
-enable_glpi        = false
-enable_soc         = true
-glpi_database_host = null
+enable_glpi         = true
+enable_soc          = true
+glpi_database_host  = null
+glpi_mysql_sku_name = "B_Standard_B1ms"
 
 # GoDaddy remains the registrar; Azure DNS becomes authoritative after the
 # first apply returns the four Azure nameservers.

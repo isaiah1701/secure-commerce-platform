@@ -52,6 +52,22 @@ resource "azurerm_subnet" "database" {
   }
 }
 
+resource "azurerm_subnet" "mysql" {
+  name                 = "${var.name_prefix}-mysql-snet"
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = azurerm_virtual_network.main.name
+  address_prefixes     = ["10.20.5.0/24"]
+
+  delegation {
+    name = "mysql-flexible-server"
+
+    service_delegation {
+      name    = "Microsoft.DBforMySQL/flexibleServers"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
+  }
+}
+
 resource "azurerm_subnet_network_security_group_association" "container_apps" {
   subnet_id                 = azurerm_subnet.container_apps.id
   network_security_group_id = azurerm_network_security_group.container_apps.id
@@ -59,6 +75,11 @@ resource "azurerm_subnet_network_security_group_association" "container_apps" {
 
 resource "azurerm_subnet_network_security_group_association" "database" {
   subnet_id                 = azurerm_subnet.database.id
+  network_security_group_id = azurerm_network_security_group.database.id
+}
+
+resource "azurerm_subnet_network_security_group_association" "mysql" {
+  subnet_id                 = azurerm_subnet.mysql.id
   network_security_group_id = azurerm_network_security_group.database.id
 }
 

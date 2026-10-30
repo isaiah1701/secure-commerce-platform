@@ -22,3 +22,8 @@ output "mysql_private_dns_zone_id" {
   description = "Private DNS zone resource ID for the GLPI MySQL server."
   value       = azurerm_private_dns_zone.mysql.id
 }
+
+output "mysql_subnet_id" {
+  description = "Delegated MySQL Flexible Server subnet resource ID."
+  value       = azurerm_subnet.mysql.id
+}
