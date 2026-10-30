@@ -43,7 +43,7 @@ locals {
         | where FailureCount >= 5
       KQL
       severity     = "High"
-      tactics      = ["CredentialAccess"]
+      tactics      = ["DefenseEvasion", "Persistence"]
       techniques   = ["T1078"]
     }
     privilege_probe = {
