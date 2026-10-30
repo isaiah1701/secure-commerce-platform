@@ -59,7 +59,4 @@ resource "azurerm_sentinel_alert_rule_scheduled" "rule" {
   suppression_duration       = "PT1H"
   tactics                    = each.value.tactics
   techniques                 = each.value.techniques
-  custom_details = {
-    scenario = "secureCommerceSoc"
-  }
 }
