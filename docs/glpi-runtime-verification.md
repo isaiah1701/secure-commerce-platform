@@ -61,9 +61,21 @@ database as part of this test.
 
 ## Current session evidence
 
-On 2026-10-30, public DNS resolved `ticket.platf0rm.site` to the GLPI
-Container App CNAME, but the normal TLS connection was reset before receiving
-a certificate or HTTP response. The origin hostname supplied in the handover
-did not return a direct DNS answer from this environment. Azure CLI could not
-be used because no active login was available, so the custom-domain binding,
-certificate state, revision health, logs, and MySQL state remain unverified.
+On 2026-10-30, Azure verification showed MySQL `Ready` with public access
+disabled, and the GLPI Container App revision
+`secure-commerce-dev-glpi--0000008` was healthy with one running replica.
+The custom domain has an active SNI-managed certificate. Both the origin
+hostname and `https://ticket.platf0rm.site/` completed normal TLS validation
+and returned HTTP 200; the custom endpoint served `Authentication - GLPI`.
+
+The existing database contained 442 tables and 297 configuration rows. Its
+two install-marker values were the literal placeholder `FILLED AT INSTALL`,
+so only `glpi_configs.version` and `glpi_configs.dbversion` were updated to
+the running GLPI 11.0.12 schema identifier. No tickets, users, or uploaded
+files were changed. Cache and log paths use ephemeral Container Apps volumes
+because Azure Files does not support the POSIX timestamp operation used by
+GLPI's Symfony cache.
+
+Ticket creation, attachment persistence, and Sentinel-to-GLPI automation are
+not yet acceptance-tested; those remain separate checks from the public login
+page verification.

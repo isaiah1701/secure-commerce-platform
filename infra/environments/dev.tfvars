@@ -8,6 +8,7 @@ enable_glpi         = true
 enable_soc          = true
 glpi_database_host  = null
 glpi_mysql_sku_name = "B_Standard_B1ms"
+glpi_image          = "securecommercedev43adc2acr.azurecr.io/glpi:11.0.12-azure8080"
 
 # GoDaddy remains the registrar; Azure DNS becomes authoritative after the
 # first apply returns the four Azure nameservers.

@@ -12,6 +12,13 @@ resource "azurerm_role_assignment" "key_vault_secrets_user" {
   principal_type       = "ServicePrincipal"
 }
 
+resource "azurerm_role_assignment" "acr_pull" {
+  scope                = var.acr_id
+  role_definition_name = "AcrPull"
+  principal_id         = azurerm_user_assigned_identity.app.principal_id
+  principal_type       = "ServicePrincipal"
+}
+
 resource "azurerm_key_vault_secret" "database_password" {
   #checkov:skip=CKV_AZURE_41:Database password rotation is coordinated with the GLPI database and application deployment.
   name         = "glpi-database-password"
@@ -69,6 +76,11 @@ resource "azurerm_container_app" "main" {
     identity_ids = [azurerm_user_assigned_identity.app.id]
   }
 
+  registry {
+    server   = var.acr_login_server
+    identity = azurerm_user_assigned_identity.app.id
+  }
+
   secret {
     name                = "database-password"
     identity            = azurerm_user_assigned_identity.app.id
@@ -78,7 +90,7 @@ resource "azurerm_container_app" "main" {
   ingress {
     external_enabled           = true
     allow_insecure_connections = false
-    target_port                = 80
+    target_port                = 8080
     transport                  = "auto"
 
     traffic_weight {
@@ -97,6 +109,16 @@ resource "azurerm_container_app" "main" {
       storage_type = "AzureFile"
     }
 
+    volume {
+      name         = "glpi-cache"
+      storage_type = "EmptyDir"
+    }
+
+    volume {
+      name         = "glpi-logs"
+      storage_type = "EmptyDir"
+    }
+
 
     container {
       name   = "glpi"
@@ -107,6 +129,19 @@ resource "azurerm_container_app" "main" {
       volume_mounts {
         name = azurerm_container_app_environment_storage.glpi.name
         path = "/var/glpi"
+      }
+
+      # Azure Files does not support every POSIX timestamp operation used by
+      # GLPI's Symfony cache. Keep disposable cache/log data ephemeral while
+      # retaining configuration and uploaded documents on the persistent share.
+      volume_mounts {
+        name = "glpi-cache"
+        path = "/var/glpi/files/_cache"
+      }
+
+      volume_mounts {
+        name = "glpi-logs"
+        path = "/var/glpi/logs"
       }
 
       env {
@@ -134,12 +169,15 @@ resource "azurerm_container_app" "main" {
         value = "/etc/ssl/certs"
       }
       env {
-        name  = "GLPI_SKIP_AUTOINSTALL"
-        value = "false"
+        name = "GLPI_SKIP_AUTOINSTALL"
+        # The existing production database has been initialized already. Do
+        # not let a restart attempt to recreate or repair it automatically.
+        value = "true"
       }
       env {
-        name  = "GLPI_SKIP_AUTOUPDATE"
-        value = "false"
+        name = "GLPI_SKIP_AUTOUPDATE"
+        # Schema changes are applied through a reviewed deployment/migration.
+        value = "true"
       }
       env {
         name  = "GLPI_CRONTAB_ENABLED"
@@ -164,7 +202,7 @@ resource "azurerm_container_app" "main" {
       liveness_probe {
         transport               = "HTTP"
         path                    = "/"
-        port                    = 80
+        port                    = 8080
         initial_delay           = 30
         interval_seconds        = 30
         timeout                 = 5
@@ -174,7 +212,7 @@ resource "azurerm_container_app" "main" {
       readiness_probe {
         transport               = "HTTP"
         path                    = "/"
-        port                    = 80
+        port                    = 8080
         interval_seconds        = 15
         timeout                 = 5
         failure_count_threshold = 5

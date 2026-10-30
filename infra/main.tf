@@ -117,6 +117,8 @@ module "glpi" {
   location                     = azurerm_resource_group.main.location
   resource_group_name          = azurerm_resource_group.main.name
   container_app_environment_id = module.container_app.container_app_environment_id
+  acr_id                       = module.acr.acr_id
+  acr_login_server             = module.acr.acr_login_server
   key_vault_id                 = module.key_vault.key_vault_id
   database_host                = coalesce(var.glpi_database_host, module.mysql[0].mysql_fqdn)
   database_name                = "glpi"
