@@ -104,7 +104,8 @@ resource "azurerm_logic_app_action_custom" "get_glpi_username" {
         audience = "https://vault.azure.net"
       }
     }
-    runAfter = {}
+    runtimeConfiguration = { secureData = { properties = ["inputs", "outputs"] } }
+    runAfter             = {}
   })
 
   depends_on = [azurerm_logic_app_trigger_custom.sentinel_incident]
@@ -124,7 +125,8 @@ resource "azurerm_logic_app_action_custom" "get_glpi_password" {
         audience = "https://vault.azure.net"
       }
     }
-    runAfter = {}
+    runtimeConfiguration = { secureData = { properties = ["inputs", "outputs"] } }
+    runAfter             = {}
   })
 
   depends_on = [azurerm_logic_app_trigger_custom.sentinel_incident]
@@ -144,7 +146,8 @@ resource "azurerm_logic_app_action_custom" "get_glpi_app_token" {
         audience = "https://vault.azure.net"
       }
     }
-    runAfter = {}
+    runtimeConfiguration = { secureData = { properties = ["inputs", "outputs"] } }
+    runAfter             = {}
   })
 
   depends_on = [azurerm_logic_app_trigger_custom.sentinel_incident]
@@ -166,6 +169,7 @@ resource "azurerm_logic_app_action_custom" "init_glpi_session" {
       }
       retryPolicy = { type = "exponential", count = 3, interval = "PT10S" }
     }
+    runtimeConfiguration = { secureData = { properties = ["inputs", "outputs"] } }
     runAfter = {
       Get_GLPI_API_Username = ["Succeeded"]
       Get_GLPI_API_Password = ["Succeeded"]
