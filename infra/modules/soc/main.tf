@@ -15,6 +15,22 @@ locals {
       tactics      = ["CredentialAccess"]
       techniques   = ["T1110"]
     }
+    auth_spray = {
+      display_name = "SOC - Password spraying across accounts"
+      description  = "Detects repeated authentication failures against multiple accounts from one source."
+      query        = <<-KQL
+        ContainerAppConsoleLogs_CL
+        | where TimeGenerated > ago(10m)
+        | extend payload=parse_json(Log_s)
+        | extend event_type=tostring(payload.event_type), source=tostring(payload.source_ip), target=tostring(payload.email_hash), simulation_id=tostring(payload.simulation_id)
+        | where event_type == "AUTH_LOGIN_FAILURE" and isnotempty(target)
+        | summarize FailureCount=count(), TargetedAccounts=dcount(target), FirstSeen=min(TimeGenerated), LastSeen=max(TimeGenerated), RequestIds=make_set(tostring(payload.request_id), 20) by source, simulation_id
+        | where FailureCount >= 5 and TargetedAccounts >= 3
+      KQL
+      severity     = "Medium"
+      tactics      = ["CredentialAccess"]
+      techniques   = ["T1110"]
+    }
     api_abuse = {
       display_name = "SOC - Suspicious API request burst"
       description  = "Detects abnormal request volume for one source in the commerce logs."
