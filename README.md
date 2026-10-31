@@ -1,7 +1,6 @@
 # Secure Commerce Platform
 
 A compact, production-style e-commerce application designed for cloud security and SOC training. It includes a FastAPI/PostgreSQL API, React storefront, admin controls, structured JSON security telemetry, request correlation, health checks, and Prometheus metrics.
-<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/cd6dd7ad-43c8-4d8f-b096-968e50e1a901" />
 
 ## Start locally with Docker
 
@@ -121,21 +120,12 @@ The Azure path keeps the application a modular monolith. The production [Dockerf
 
 ### Architecture
 
-```mermaid
-flowchart TD
-    User((Internet user)) --> DNS[Azure DNS\noptional custom domain]
-    DNS --> App[Azure Container App\nSecure Commerce monolith]
-    App --> PG[(PostgreSQL Flexible Server\nprivate delegated subnet)]
-    App --> KV[Azure Key Vault\nsecret references]
-    ACR[Azure Container Registry] -->|managed identity + AcrPull| App
-    App --> AI[Application Insights]
-    App --> LAW[Log Analytics Workspace]
-    AI --> LAW
-    LAW -.-> Sentinel[Microsoft Sentinel\nlater phase]
-    GitHub[GitHub Actions] -->|Entra OIDC| Azure[Azure Resource Manager]
-    GitHub -->|SHA image| ACR
-    Azure --> App
-```
+![Secure Commerce Azure SOC Platform — current cloud infrastructure](https://github.com/user-attachments/assets/cd6dd7ad-43c8-4d8f-b096-968e50e1a901)
+
+The diagram is a snapshot of the deployed commerce and GLPI applications, private databases,
+centralized monitoring, Sentinel detections, and the SOC training workflow. Its Logic App status
+predates the deployed Sentinel-to-GLPI automation; see the [SOC acceptance matrix](docs/soc/acceptance-matrix.md)
+for current status.
 
 The VNet uses `10.20.0.0/16`, with `10.20.0.0/23` delegated to Container Apps and `10.20.4.0/24` delegated exclusively to PostgreSQL. PostgreSQL public access is disabled and its hostname resolves through a VNet-linked private DNS zone.
 
