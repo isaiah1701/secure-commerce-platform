@@ -1,6 +1,7 @@
 # Secure Commerce Platform
 
 A compact, production-style e-commerce application designed for cloud security and SOC training. It includes a FastAPI/PostgreSQL API, React storefront, admin controls, structured JSON security telemetry, request correlation, health checks, and Prometheus metrics.
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/cd6dd7ad-43c8-4d8f-b096-968e50e1a901" />
 
 ## Start locally with Docker
 
