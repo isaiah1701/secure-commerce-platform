@@ -10,4 +10,5 @@ if ! cmp -s "$theme_source" "$theme_target"; then
     cp "$theme_source" "$theme_target"
 fi
 
-exec /opt/glpi/entrypoint.sh "$@"
+touch "$theme_target"
+exec gosu www-data /opt/glpi/entrypoint.sh "$@"

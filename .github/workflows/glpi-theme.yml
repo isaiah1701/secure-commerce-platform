@@ -45,22 +45,32 @@ jobs:
           .
 
       - name: Deploy GLPI image only
-        run: >-
-          az containerapp update
-          --name "$GLPI_CONTAINER_APP_NAME"
-          --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}"
-          --image "${{ vars.ACR_LOGIN_SERVER }}/glpi:${{ github.sha }}"
-          --revision-suffix "theme-${GITHUB_SHA::12}"
-
-      - name: Verify GLPI is healthy
         run: |
-          for attempt in {1..20}; do
-            if curl --fail --silent --show-error https://ticket.platf0rm.site/ >/dev/null; then
-              echo "GLPI is responding at https://ticket.platf0rm.site"
+          revision_suffix="theme-${GITHUB_SHA::12}"
+          revision_name="${GLPI_CONTAINER_APP_NAME}--${revision_suffix}"
+          az containerapp update \
+            --name "$GLPI_CONTAINER_APP_NAME" \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --image "${{ vars.ACR_LOGIN_SERVER }}/glpi:${{ github.sha }}" \
+            --revision-suffix "$revision_suffix"
+
+          for attempt in {1..30}; do
+            revision_health=$(az containerapp revision list \
+              --name "$GLPI_CONTAINER_APP_NAME" \
+              --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+              --query "[?name=='${revision_name}'].properties.healthState | [0]" \
+              --output tsv)
+
+            if [[ "$revision_health" == "Healthy" ]] && \
+               curl --fail --silent --show-error https://ticket.platf0rm.site/ >/dev/null; then
+              echo "GLPI revision ${revision_name} is healthy"
               exit 0
             fi
-            echo "Health check attempt ${attempt}/20 failed; retrying in 15 seconds"
-            sleep 15
+            echo "Revision health check attempt ${attempt}/30: ${revision_health:-pending}; retrying in 10 seconds"
+            sleep 10
           done
-          echo "GLPI did not become healthy"
+          echo "The new GLPI revision did not become healthy"
           exit 1
+
+      - name: Verify GLPI is healthy
+        run: curl --fail --silent --show-error https://ticket.platf0rm.site/ >/dev/null

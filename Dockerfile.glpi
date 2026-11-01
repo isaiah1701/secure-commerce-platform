@@ -11,6 +11,9 @@ COPY glpi-theme/soc_ops.scss /opt/glpi-theme/soc_ops.scss
 COPY glpi-theme/entrypoint.sh /usr/local/bin/glpi-entrypoint-with-theme
 RUN chmod 0444 /opt/glpi-theme/soc_ops.scss \
     && chmod 0555 /usr/local/bin/glpi-entrypoint-with-theme
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends gosu \
+    && rm -rf /var/lib/apt/lists/*
 
-USER www-data
+USER root
 ENTRYPOINT ["/usr/local/bin/glpi-entrypoint-with-theme"]
