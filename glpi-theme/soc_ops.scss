@@ -1,40 +1,56 @@
-$is-dark: true;
-
+:root[data-glpi-theme="auror"],
 :root[data-glpi-theme="soc_ops"] {
-    --tblr-dark: #07111e;
-    --tblr-light: #e9f0f7;
-    --tblr-body-bg: #0b1421;
-    --tblr-bg-surface: #111d2b;
-    --tblr-body-color: #d5dfeb;
-    --tblr-primary-rgb: 73, 213, 196;
-    --tblr-primary-fg: #062c2e;
-    --tblr-secondary: #26374a;
-    --tblr-secondary-fg: #e5edf5;
-    --tblr-link-color-rgb: 99, 222, 207;
-    --tblr-link-hover-color-rgb: 157, 241, 229;
-    --tblr-muted: #96a9bd;
-    --tblr-muted-rgb: 150, 169, 189;
-    --tblr-badge-bg: #26374a;
-    --tblr-badge-color: #e5edf5;
-    --glpi-mainmenu-bg: #0a1523;
-    --glpi-mainmenu-fg: #d4deea;
-    --glpi-form-header-fg: #70dfd0;
+    --tblr-dark: #142236;
+    --tblr-light: #f4f7fa;
+    --tblr-body-bg: #f3f6fa;
+    --tblr-bg-surface: #ffffff;
+    --tblr-body-color: #1c2b3b;
+    --tblr-primary-rgb: 16, 116, 128;
+    --tblr-primary-fg: #ffffff;
+    --tblr-secondary: #eaf0f5;
+    --tblr-secondary-fg: #24364a;
+    --tblr-link-color-rgb: 13, 110, 124;
+    --tblr-link-hover-color-rgb: 8, 82, 94;
+    --tblr-muted: #617488;
+    --tblr-muted-rgb: 97, 116, 136;
+    --tblr-badge-bg: #eaf0f5;
+    --tblr-badge-color: #24364a;
+    --glpi-mainmenu-bg: #0e1b2b;
+    --glpi-mainmenu-fg: #dce6f0;
+    --glpi-form-header-fg: #0f7180;
     --glpi-form-header-border-color: transparent;
-    --glpi-tabs-bg: #101c2a;
-    --glpi-tabs-fg: #afbdcc;
-    --glpi-tabs-border-color: #25364a;
-    --glpi-tabs-active-bg: #1b3042;
-    --glpi-tabs-active-fg: #f1f6fb;
+    --glpi-tabs-bg: #edf2f7;
+    --glpi-tabs-fg: #53677c;
+    --glpi-tabs-border-color: #dfe7ef;
+    --glpi-tabs-active-bg: #ffffff;
+    --glpi-tabs-active-fg: #0d6e7c;
     --glpi-tabs-active-border-color: transparent;
-    --glpi-itil-secondary-bg: #101c2a;
-    --glpi-timeline-fup-bg: #111e2d;
-    --glpi-timeline-fup-fg: #b3c0cf;
-    --glpi-timeline-fup-border: #293b4f;
-    --glpi-helpdesk-header: #173143;
-    --glpi-helpdesk-tiles-section-bg: #122638;
-    --glpi-helpdesk-tabs-section-bg: #0e1b29;
-    --glpi-palette-color-1: #0a1523;
-    --glpi-palette-color-2: #111d2b;
-    --glpi-palette-color-3: #2d9f98;
-    --glpi-palette-color-4: #49d5c4;
+    --glpi-itil-secondary-bg: #f4f7fa;
+    --glpi-timeline-fup-bg: #f5f8fb;
+    --glpi-timeline-fup-fg: #53677c;
+    --glpi-timeline-fup-border: #dfe7ef;
+    --glpi-helpdesk-header: #eaf3f5;
+    --glpi-helpdesk-tiles-section-bg: #f1f6f8;
+    --glpi-helpdesk-tabs-section-bg: #f7f9fb;
+    --glpi-palette-color-1: #0e1b2b;
+    --glpi-palette-color-2: #ffffff;
+    --glpi-palette-color-3: #107480;
+    --glpi-palette-color-4: #dff3f0;
+    --tblr-border-radius: 0.7rem;
+}
+
+:root[data-glpi-theme="auror"] .card,
+:root[data-glpi-theme="soc_ops"] .card {
+    border-color: #e1e8ef;
+    border-radius: 0.75rem;
+    box-shadow: 0 0.2rem 0.9rem rgba(17, 38, 59, 0.05);
+}
+
+:root[data-glpi-theme="auror"] .form-control,
+:root[data-glpi-theme="auror"] .form-select,
+:root[data-glpi-theme="auror"] .btn,
+:root[data-glpi-theme="soc_ops"] .form-control,
+:root[data-glpi-theme="soc_ops"] .form-select,
+:root[data-glpi-theme="soc_ops"] .btn {
+    border-radius: 0.55rem;
 }
