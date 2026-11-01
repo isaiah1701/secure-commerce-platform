@@ -1,0 +1,66 @@
+name: Build and deploy GLPI theme
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "Dockerfile.glpi"
+      - "glpi-theme/**"
+      - ".github/workflows/glpi-theme.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: glpi-theme-dev
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build and deploy GLPI theme only
+    runs-on: ubuntu-latest
+    environment: dev
+    env:
+      GLPI_CONTAINER_APP_NAME: secure-commerce-dev-glpi
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Authenticate to Azure with OIDC
+        uses: azure/login@v3
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Build immutable GLPI image in ACR
+        run: >-
+          az acr build
+          --registry "${{ vars.ACR_NAME }}"
+          --image "glpi:${{ github.sha }}"
+          --file Dockerfile.glpi
+          .
+
+      - name: Deploy GLPI image only
+        run: >-
+          az containerapp update
+          --name "$GLPI_CONTAINER_APP_NAME"
+          --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}"
+          --image "${{ vars.ACR_LOGIN_SERVER }}/glpi:${{ github.sha }}"
+          --revision-suffix "theme-${GITHUB_SHA::12}"
+
+      - name: Verify GLPI is healthy
+        run: |
+          for attempt in {1..20}; do
+            if curl --fail --silent --show-error https://ticket.platf0rm.site/ >/dev/null; then
+              echo "GLPI is responding at https://ticket.platf0rm.site"
+              exit 0
+            fi
+            echo "Health check attempt ${attempt}/20 failed; retrying in 15 seconds"
+            sleep 15
+          done
+          echo "GLPI did not become healthy"
+          exit 1

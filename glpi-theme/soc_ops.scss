@@ -1,0 +1,40 @@
+$is-dark: true;
+
+:root[data-glpi-theme="soc_ops"] {
+    --tblr-dark: #07111e;
+    --tblr-light: #e9f0f7;
+    --tblr-body-bg: #0b1421;
+    --tblr-bg-surface: #111d2b;
+    --tblr-body-color: #d5dfeb;
+    --tblr-primary-rgb: 73, 213, 196;
+    --tblr-primary-fg: #062c2e;
+    --tblr-secondary: #26374a;
+    --tblr-secondary-fg: #e5edf5;
+    --tblr-link-color-rgb: 99, 222, 207;
+    --tblr-link-hover-color-rgb: 157, 241, 229;
+    --tblr-muted: #96a9bd;
+    --tblr-muted-rgb: 150, 169, 189;
+    --tblr-badge-bg: #26374a;
+    --tblr-badge-color: #e5edf5;
+    --glpi-mainmenu-bg: #0a1523;
+    --glpi-mainmenu-fg: #d4deea;
+    --glpi-form-header-fg: #70dfd0;
+    --glpi-form-header-border-color: transparent;
+    --glpi-tabs-bg: #101c2a;
+    --glpi-tabs-fg: #afbdcc;
+    --glpi-tabs-border-color: #25364a;
+    --glpi-tabs-active-bg: #1b3042;
+    --glpi-tabs-active-fg: #f1f6fb;
+    --glpi-tabs-active-border-color: transparent;
+    --glpi-itil-secondary-bg: #101c2a;
+    --glpi-timeline-fup-bg: #111e2d;
+    --glpi-timeline-fup-fg: #b3c0cf;
+    --glpi-timeline-fup-border: #293b4f;
+    --glpi-helpdesk-header: #173143;
+    --glpi-helpdesk-tiles-section-bg: #122638;
+    --glpi-helpdesk-tabs-section-bg: #0e1b29;
+    --glpi-palette-color-1: #0a1523;
+    --glpi-palette-color-2: #111d2b;
+    --glpi-palette-color-3: #2d9f98;
+    --glpi-palette-color-4: #49d5c4;
+}
