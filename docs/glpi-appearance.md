@@ -1,7 +1,8 @@
 # GLPI appearance
 
 The GLPI container includes a GLPI 11 custom palette named **SOC Ops**. Its
-SCSS is copied into GLPI's supported custom-theme directory at container start.
+SCSS lives in the image and uses GLPI's supported `GLPI_THEMES_DIR` setting;
+deployment does not write into the persisted Azure Files mount.
 The visual treatment also applies to the existing Aurora palette, so it appears
 immediately without changing a stored GLPI preference. It does not edit the
 GLPI database, existing ticket content, or Terraform configuration.

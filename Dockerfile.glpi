@@ -8,12 +8,8 @@ RUN sed -i 's/^Listen 80$/Listen 8080/' /etc/apache2/ports.conf \
     && sed -i 's#<VirtualHost \*:80>#<VirtualHost *:8080>#' /etc/apache2/sites-available/000-default.conf \
     && sed -i 's#<VirtualHost \*:80>#<VirtualHost *:8080>#' /etc/apache2/sites-enabled/000-default.conf
 COPY glpi-theme/soc_ops.scss /opt/glpi-theme/soc_ops.scss
-COPY glpi-theme/entrypoint.sh /usr/local/bin/glpi-entrypoint-with-theme
-RUN chmod 0444 /opt/glpi-theme/soc_ops.scss \
-    && chmod 0555 /usr/local/bin/glpi-entrypoint-with-theme
-RUN apt-get update \
-    && apt-get install --yes --no-install-recommends gosu \
-    && rm -rf /var/lib/apt/lists/*
+RUN chmod 0444 /opt/glpi-theme/soc_ops.scss
 
-USER root
-ENTRYPOINT ["/usr/local/bin/glpi-entrypoint-with-theme"]
+ENV GLPI_THEMES_DIR=/opt/glpi-theme
+
+USER www-data
