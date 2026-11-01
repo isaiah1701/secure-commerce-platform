@@ -1,0 +1,4 @@
+events
+| where EventType in ("AUTH_LOGIN_FAILURE", "AUTH_ACCOUNT_LOCKED") and isnotempty(TargetHash)
+| summarize FailedAttempts=dcountif(RequestId, EventType=="AUTH_LOGIN_FAILURE"), AccountLockoutEvents=countif(EventType=="AUTH_ACCOUNT_LOCKED"), FirstActivityUtc=min(ActivityTime), LastActivityUtc=max(ActivityTime), ObservedSources=make_set_if(SourceIP, SourceIP!="unknown", 10), AccountHashes=make_set(TargetHash, 20), RequestIds=make_set(RequestId, 30) by SimulationId, TargetHash
+| where FailedAttempts >= 5 or AccountLockoutEvents >= 1

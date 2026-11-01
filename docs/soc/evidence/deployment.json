@@ -1,0 +1,28 @@
+{
+  "verified_utc": "2026-11-01T02:43:52.715072+00:00",
+  "image": "securecommercedev43adc2acr.azurecr.io/secure-commerce:soc-complete-20261101-0230",
+  "acr_build": "db4",
+  "revision": "secure-commerce-dev-app--0000003",
+  "pipeline_terraform_apply": {
+    "added": 5,
+    "changed": 17,
+    "destroyed": 0
+  },
+  "existing_role_imported": "module.glpi[0].azurerm_role_assignment.acr_pull",
+  "normal_full_plan": "No changes. Your infrastructure matches the configuration.",
+  "state_refresh_apply_exit": 0,
+  "source_attribution": {
+    "runner_egress": "82.9.130.188",
+    "new_auth_observed": "82.9.130.188",
+    "proxy_attributed_as_attacker": false
+  },
+  "tests": {
+    "python_passed": 39,
+    "node_passed": 6,
+    "ruff": "passed",
+    "terraform_fmt": "passed",
+    "terraform_validate": "passed",
+    "frontend_lint": "passed",
+    "frontend_build": "passed"
+  }
+}

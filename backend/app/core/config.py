@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     login_lock_minutes: int = 15
     auth_rate_limit: int = 10
     auth_rate_window_seconds: int = 60
+    trusted_proxy_cidrs: str = ""
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

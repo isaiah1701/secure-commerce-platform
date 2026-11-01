@@ -1,0 +1,48 @@
+{
+  "backend": {
+    "resource_group_name": "secure-commerce-tfstate-rg",
+    "storage_account_name": "scstate43adc2c20fd5",
+    "container_name": "tfstate",
+    "key": "secure-commerce-dev.tfstate"
+  },
+  "final_validation": {
+    "refreshed_full_terraform_plan": "No changes",
+    "planned_destroy_count": 0,
+    "terraform_version": "1.13.2",
+    "state_serial": 200,
+    "managed_resource_count": 79,
+    "remote_state_backup": {
+      "name": "backups/secure-commerce-dev-final-20261101T0326.tfstate",
+      "last_modified_utc": "2026-11-01T03:26:18Z",
+      "size_bytes": 281075
+    },
+    "sentinel_health_diagnostics": {
+      "name": "secure-commerce-dev-sentinel-health",
+      "enabled_categories": ["Analytics", "Automation"],
+      "sentinel_health_events_observed": 6,
+      "last_event_utc": "2026-11-01T03:04:22.818667Z"
+    },
+    "live_health": {
+      "commerce_ready_http": 200,
+      "glpi_http": 200,
+      "commerce_revision": "secure-commerce-dev-app--0000003",
+      "commerce_revision_health": "Healthy"
+    }
+  },
+  "deployment_identity": {
+    "clientId": "728e95d3-95f9-46b5-80b9-37b0d5546bd3",
+    "displayName": "secure-commerce-platform-github-actions",
+    "objectId": "6afc9248-684a-44fe-a965-a1c42e20a74d"
+  },
+  "new_role_grants": [],
+  "role_assignments": [
+    {
+      "role": "Owner",
+      "scope": "/subscriptions/43adc2c2-0fd5-4474-aa8a-9f32f541e4b7/resourceGroups/secure-commerce-dev-rg"
+    },
+    {
+      "role": "Storage Blob Data Contributor",
+      "scope": "/subscriptions/43adc2c2-0fd5-4474-aa8a-9f32f541e4b7/resourceGroups/secure-commerce-tfstate-rg/providers/Microsoft.Storage/storageAccounts/scstate43adc2c20fd5"
+    }
+  ]
+}

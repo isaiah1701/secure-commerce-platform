@@ -1,0 +1,13 @@
+{
+  "validated_utc": "2026-11-01T03:20:17.485614+00:00",
+  "ticket_id": 57,
+  "clickable_href_attributes": [
+    "https://portal.azure.com/#asset/Microsoft_Azure_Security_Insights/Incident/subscriptions/43adc2c2-0fd5-4474-aa8a-9f32f541e4b7/resourceGroups/secure-commerce-dev-rg/providers/Microsoft.OperationalInsights/workspaces/secure-commerce-dev-law/providers/Microsoft.SecurityInsights/Incidents/057517db-1a7d-480f-9c4a-44daae6b2712",
+    "https://portal.azure.com/#@cdd8b4e5-ab12-4d43-a01d-0e70523c17ac/resource/subscriptions/43adc2c2-0fd5-4474-aa8a-9f32f541e4b7/resourceGroups/secure-commerce-dev-rg/providers/Microsoft.OperationalInsights/workspaces/secure-commerce-dev-law/overview"
+  ],
+  "workspace_exact_match": true,
+  "workspace_resource_verified": "secure-commerce-dev-law",
+  "observed_source": "82.9.130.188",
+  "content_sha256": "9500476db78a51c687672c4e8dc4d36e761d0465d42a439f5e36f6990cb18e52",
+  "authenticated_browser_rendering": "Not exercised; API confirms clickable HTML href attributes and tenant-aware workspace target"
+}

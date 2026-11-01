@@ -1,0 +1,9 @@
+let failures = events
+| where EventType == "AUTH_LOGIN_FAILURE" and isnotempty(TargetHash)
+| summarize FailureCount=dcount(RequestId), FailureFirst=min(ActivityTime), FailureLast=max(ActivityTime) by SimulationId, TargetHash
+| where FailureCount >= 3;
+events
+| where EventType == "AUTH_LOGIN_SUCCESS" and isnotempty(TargetHash)
+| join kind=inner failures on SimulationId, TargetHash
+| where ActivityTime > FailureLast
+| summarize FirstActivityUtc=min(FailureFirst), LastActivityUtc=max(ActivityTime), ObservedSources=make_set_if(SourceIP, SourceIP!="unknown", 10), AccountHashes=make_set(TargetHash, 20), RequestIds=make_set(RequestId, 30), FailureCount=max(FailureCount) by SimulationId

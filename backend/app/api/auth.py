@@ -75,7 +75,7 @@ def login(data: LoginRequest, request: Request, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(user)
     LOGIN_SUCCESS.inc()
-    security_event(request, "AUTH_LOGIN_SUCCESS", "Login succeeded", user_id=user.id, user_role=user.role.value)
+    security_event(request, "AUTH_LOGIN_SUCCESS", "Login succeeded", email_hash=anonymize_email(email), user_id=user.id, user_role=user.role.value)
     return TokenOut(access_token=create_access_token(user.id, user.role.value), user=user)
 
 

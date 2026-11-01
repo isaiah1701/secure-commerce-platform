@@ -1,0 +1,4 @@
+events
+| where EventType == "SUSPICIOUS_REQUEST"
+| summarize SuspiciousCount=dcount(RequestId), FirstActivityUtc=min(ActivityTime), LastActivityUtc=max(ActivityTime), ObservedSources=make_set_if(SourceIP, SourceIP!="unknown", 10), AccountHashes=make_set(TargetHash, 20), RequestIds=make_set(RequestId, 30) by SimulationId
+| where SuspiciousCount >= 1

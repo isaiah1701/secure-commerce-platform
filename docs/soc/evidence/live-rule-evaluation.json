@@ -1,0 +1,793 @@
+{
+  "verified_utc": "2026-11-01T02:41Z",
+  "rules": [
+    {
+      "rule": "BuiltInFusion",
+      "kind": "Fusion",
+      "enabled": true,
+      "query_validation": "Not a scheduled KQL rule; preserved"
+    },
+    {
+      "rule": "secure-commerce-dev-api_abuse",
+      "kind": "Scheduled",
+      "enabled": true,
+      "http_status": 200,
+      "result": {
+        "tables": [
+          {
+            "name": "PrimaryResult",
+            "columns": [
+              {
+                "name": "SimulationId",
+                "type": "string"
+              },
+              {
+                "name": "RequestCount",
+                "type": "long"
+              },
+              {
+                "name": "FirstActivityUtc",
+                "type": "string"
+              },
+              {
+                "name": "LastActivityUtc",
+                "type": "string"
+              },
+              {
+                "name": "ObservedSources",
+                "type": "dynamic"
+              },
+              {
+                "name": "AccountHashes",
+                "type": "string"
+              },
+              {
+                "name": "RequestIds",
+                "type": "dynamic"
+              },
+              {
+                "name": "SourceIP",
+                "type": "string"
+              },
+              {
+                "name": "Asset",
+                "type": "string"
+              },
+              {
+                "name": "TimeGenerated",
+                "type": "datetime"
+              }
+            ],
+            "rows": [
+              [
+                "soc-api-read-burst-20261101T023909Z",
+                59,
+                "2026-11-01T02:39:11.0806840Z",
+                "2026-11-01T02:40:12.0252400Z",
+                "[\"82.9.130.188\"]",
+                "[\"\"]",
+                "[\"soc-api-read-burst-20261101T023909Z-21-1793500772483\",\"soc-api-read-burst-20261101T023909Z-19-1793500770420\",\"soc-api-read-burst-20261101T023909Z-24-1793500775579\",\"soc-api-read-burst-20261101T023909Z-22-1793500773516\",\"soc-api-read-burst-20261101T023909Z-35-1793500786931\",\"soc-api-read-burst-20261101T023909Z-43-1793500795210\",\"soc-api-read-burst-20261101T023909Z-45-1793500797278\",\"soc-api-read-burst-20261101T023909Z-49-1793500801412\",\"soc-api-read-burst-20261101T023909Z-57-1793500809686\",\"soc-api-read-burst-20261101T023909Z-1-1793500751840\",\"soc-api-read-burst-20261101T023909Z-4-1793500754932\",\"soc-api-read-burst-20261101T023909Z-5-1793500755962\",\"soc-api-read-burst-20261101T023909Z-7-1793500758025\",\"soc-api-read-burst-20261101T023909Z-8-1793500759058\",\"soc-api-read-burst-20261101T023909Z-10-1793500761117\",\"soc-api-read-burst-20261101T023909Z-9-1793500760089\",\"soc-api-read-burst-20261101T023909Z-12-1793500763185\",\"soc-api-read-burst-20261101T023909Z-13-1793500764219\",\"soc-api-read-burst-20261101T023909Z-14-1793500765252\",\"soc-api-read-burst-20261101T023909Z-16-1793500767316\",\"soc-api-read-burst-20261101T023909Z-20-1793500771451\",\"soc-api-read-burst-20261101T023909Z-25-1793500776609\",\"soc-api-read-burst-20261101T023909Z-28-1793500779705\",\"soc-api-read-burst-20261101T023909Z-32-1793500783834\",\"soc-api-read-burst-20261101T023909Z-31-1793500782803\",\"soc-api-read-burst-20261101T023909Z-29-1793500780736\",\"soc-api-read-burst-20261101T023909Z-34-1793500785897\",\"soc-api-read-burst-20261101T023909Z-33-1793500784865\",\"soc-api-read-burst-20261101T023909Z-36-1793500787960\",\"soc-api-read-burst-20261101T023909Z-37-1793500788995\"]",
+                "82.9.130.188",
+                "Commerce API / secure-commerce-dev-app",
+                "2026-11-01T02:39:11.080684Z"
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "rule": "secure-commerce-dev-telemetry_gap",
+      "kind": "Scheduled",
+      "enabled": false,
+      "http_status": 200,
+      "result": {
+        "tables": [
+          {
+            "name": "PrimaryResult",
+            "columns": [
+              {
+                "name": "LastEvent",
+                "type": "datetime"
+              }
+            ],
+            "rows": []
+          }
+        ]
+      }
+    },
+    {
+      "rule": "secure-commerce-dev-auth_attack",
+      "kind": "Scheduled",
+      "enabled": true,
+      "http_status": 200,
+      "result": {
+        "tables": [
+          {
+            "name": "PrimaryResult",
+            "columns": [
+              {
+                "name": "SimulationId",
+                "type": "string"
+              },
+              {
+                "name": "TargetHash",
+                "type": "string"
+              },
+              {
+                "name": "FailedAttempts",
+                "type": "long"
+              },
+              {
+                "name": "AccountLockoutEvents",
+                "type": "long"
+              },
+              {
+                "name": "FirstActivityUtc",
+                "type": "string"
+              },
+              {
+                "name": "LastActivityUtc",
+                "type": "string"
+              },
+              {
+                "name": "ObservedSources",
+                "type": "dynamic"
+              },
+              {
+                "name": "AccountHashes",
+                "type": "string"
+              },
+              {
+                "name": "RequestIds",
+                "type": "dynamic"
+              },
+              {
+                "name": "SourceIP",
+                "type": "string"
+              },
+              {
+                "name": "Asset",
+                "type": "string"
+              },
+              {
+                "name": "TimeGenerated",
+                "type": "datetime"
+              }
+            ],
+            "rows": [
+              [
+                "soc-auth-lockout-20261101T023544Z",
+                "ede9e7c276196275",
+                5,
+                4,
+                "2026-11-01T02:35:48.7673560Z",
+                "2026-11-01T02:36:03.1591550Z",
+                "[\"82.9.130.188\"]",
+                "[\"ede9e7c276196275\"]",
+                "[\"soc-auth-lockout-20261101T023544Z-1-6-1793500560850\",\"soc-auth-lockout-20261101T023544Z-1-1-1793500550529\",\"soc-auth-lockout-20261101T023544Z-1-2-1793500552602\",\"soc-auth-lockout-20261101T023544Z-1-3-1793500554675\",\"soc-auth-lockout-20261101T023544Z-1-5-1793500558811\",\"soc-auth-lockout-20261101T023544Z-1-0-1793500548366\",\"soc-auth-lockout-20261101T023544Z-1-4-1793500556749\",\"soc-auth-lockout-20261101T023544Z-1-7-1793500562885\"]",
+                "82.9.130.188",
+                "Commerce API / secure-commerce-dev-app",
+                "2026-11-01T02:35:48.767356Z"
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "rule": "secure-commerce-dev-cloud_change",
+      "kind": "Scheduled",
+      "enabled": false,
+      "http_status": 200,
+      "result": {
+        "tables": [
+          {
+            "name": "PrimaryResult",
+            "columns": [
+              {
+                "name": "OperationName",
+                "type": "string"
+              },
+              {
+                "name": "OperationNameValue",
+                "type": "string"
+              },
+              {
+                "name": "Level",
+                "type": "string"
+              },
+              {
+                "name": "ActivityStatus",
+                "type": "string"
+              },
+              {
+                "name": "ActivityStatusValue",
+                "type": "string"
+              },
+              {
+                "name": "ActivitySubstatus",
+                "type": "string"
+              },
+              {
+                "name": "ActivitySubstatusValue",
+                "type": "string"
+              },
+              {
+                "name": "ResourceGroup",
+                "type": "string"
+              },
+              {
+                "name": "SubscriptionId",
+                "type": "string"
+              },
+              {
+                "name": "CorrelationId",
+                "type": "string"
+              },
+              {
+                "name": "Caller",
+                "type": "string"
+              },
+              {
+                "name": "CallerIpAddress",
+                "type": "string"
+              },
+              {
+                "name": "Category",
+                "type": "string"
+              },
+              {
+                "name": "CategoryValue",
+                "type": "string"
+              },
+              {
+                "name": "HTTPRequest",
+                "type": "string"
+              },
+              {
+                "name": "Properties",
+                "type": "string"
+              },
+              {
+                "name": "EventSubmissionTimestamp",
+                "type": "datetime"
+              },
+              {
+                "name": "Authorization",
+                "type": "string"
+              },
+              {
+                "name": "ResourceId",
+                "type": "string"
+              },
+              {
+                "name": "OperationId",
+                "type": "string"
+              },
+              {
+                "name": "ResourceProvider",
+                "type": "string"
+              },
+              {
+                "name": "ResourceProviderValue",
+                "type": "string"
+              },
+              {
+                "name": "Resource",
+                "type": "string"
+              },
+              {
+                "name": "EventDataId",
+                "type": "string"
+              },
+              {
+                "name": "TenantId",
+                "type": "string"
+              },
+              {
+                "name": "TimeGenerated",
+                "type": "datetime"
+              },
+              {
+                "name": "SourceSystem",
+                "type": "string"
+              },
+              {
+                "name": "Authorization_d",
+                "type": "dynamic"
+              },
+              {
+                "name": "Claims",
+                "type": "string"
+              },
+              {
+                "name": "Claims_d",
+                "type": "dynamic"
+              },
+              {
+                "name": "Properties_d",
+                "type": "dynamic"
+              },
+              {
+                "name": "Hierarchy",
+                "type": "string"
+              },
+              {
+                "name": "Type",
+                "type": "string"
+              },
+              {
+                "name": "_ResourceId",
+                "type": "string"
+              }
+            ],
+            "rows": []
+          }
+        ]
+      }
+    },
+    {
+      "rule": "secure-commerce-dev-privilege_probe",
+      "kind": "Scheduled",
+      "enabled": true,
+      "http_status": 200,
+      "result": {
+        "tables": [
+          {
+            "name": "PrimaryResult",
+            "columns": [
+              {
+                "name": "SimulationId",
+                "type": "string"
+              },
+              {
+                "name": "ProbeCount",
+                "type": "long"
+              },
+              {
+                "name": "FirstActivityUtc",
+                "type": "string"
+              },
+              {
+                "name": "LastActivityUtc",
+                "type": "string"
+              },
+              {
+                "name": "ObservedSources",
+                "type": "dynamic"
+              },
+              {
+                "name": "AccountHashes",
+                "type": "string"
+              },
+              {
+                "name": "RequestIds",
+                "type": "dynamic"
+              },
+              {
+                "name": "SourceIP",
+                "type": "string"
+              },
+              {
+                "name": "Asset",
+                "type": "string"
+              },
+              {
+                "name": "TimeGenerated",
+                "type": "datetime"
+              }
+            ],
+            "rows": [
+              [
+                "soc-privilege-probe-20261101T023806Z",
+                3,
+                "2026-11-01T02:38:10.8432530Z",
+                "2026-11-01T02:38:12.9123020Z",
+                "[\"82.9.130.188\"]",
+                "[\"user:30\"]",
+                "[\"soc-privilege-probe-20261101T023806Z-1-0-1793500690566\",\"soc-privilege-probe-20261101T023806Z-1-0-1793500691600\",\"soc-privilege-probe-20261101T023806Z-1-0-1793500692632\"]",
+                "82.9.130.188",
+                "Commerce API / secure-commerce-dev-app",
+                "2026-11-01T02:38:10.843253Z"
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "rule": "secure-commerce-dev-suspicious_success",
+      "kind": "Scheduled",
+      "enabled": true,
+      "http_status": 200,
+      "result": {
+        "tables": [
+          {
+            "name": "PrimaryResult",
+            "columns": [
+              {
+                "name": "SimulationId",
+                "type": "string"
+              },
+              {
+                "name": "FirstActivityUtc",
+                "type": "string"
+              },
+              {
+                "name": "LastActivityUtc",
+                "type": "string"
+              },
+              {
+                "name": "ObservedSources",
+                "type": "dynamic"
+              },
+              {
+                "name": "AccountHashes",
+                "type": "string"
+              },
+              {
+                "name": "RequestIds",
+                "type": "dynamic"
+              },
+              {
+                "name": "FailureCount",
+                "type": "long"
+              },
+              {
+                "name": "SourceIP",
+                "type": "string"
+              },
+              {
+                "name": "Asset",
+                "type": "string"
+              },
+              {
+                "name": "TimeGenerated",
+                "type": "datetime"
+              }
+            ],
+            "rows": [
+              [
+                "soc-auth-success-after-failures-20261101T023721Z",
+                "2026-11-01T02:37:24.7037440Z",
+                "2026-11-01T02:37:27.9171630Z",
+                "[\"82.9.130.188\"]",
+                "[\"ca89a6c8d1d51a0b\"]",
+                "[\"soc-auth-success-after-failures-20261101T023721Z-1-0-1793500647593\"]",
+                3,
+                "82.9.130.188",
+                "Commerce API / secure-commerce-dev-app",
+                "2026-11-01T02:37:24.703744Z"
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "rule": "secure-commerce-dev-auth_rate_limit",
+      "kind": "Scheduled",
+      "enabled": true,
+      "http_status": 200,
+      "result": {
+        "tables": [
+          {
+            "name": "PrimaryResult",
+            "columns": [
+              {
+                "name": "SimulationId",
+                "type": "string"
+              },
+              {
+                "name": "RateLimitedCount",
+                "type": "long"
+              },
+              {
+                "name": "FirstActivityUtc",
+                "type": "string"
+              },
+              {
+                "name": "LastActivityUtc",
+                "type": "string"
+              },
+              {
+                "name": "ObservedSources",
+                "type": "dynamic"
+              },
+              {
+                "name": "AccountHashes",
+                "type": "string"
+              },
+              {
+                "name": "RequestIds",
+                "type": "dynamic"
+              },
+              {
+                "name": "SourceIP",
+                "type": "string"
+              },
+              {
+                "name": "Asset",
+                "type": "string"
+              },
+              {
+                "name": "TimeGenerated",
+                "type": "datetime"
+              }
+            ],
+            "rows": []
+          }
+        ]
+      }
+    },
+    {
+      "rule": "secure-commerce-dev-auth_spray",
+      "kind": "Scheduled",
+      "enabled": true,
+      "http_status": 200,
+      "result": {
+        "tables": [
+          {
+            "name": "PrimaryResult",
+            "columns": [
+              {
+                "name": "SimulationId",
+                "type": "string"
+              },
+              {
+                "name": "FailureCount",
+                "type": "long"
+              },
+              {
+                "name": "TargetedAccounts",
+                "type": "long"
+              },
+              {
+                "name": "FirstActivityUtc",
+                "type": "string"
+              },
+              {
+                "name": "LastActivityUtc",
+                "type": "string"
+              },
+              {
+                "name": "ObservedSources",
+                "type": "dynamic"
+              },
+              {
+                "name": "AccountHashes",
+                "type": "string"
+              },
+              {
+                "name": "RequestIds",
+                "type": "dynamic"
+              },
+              {
+                "name": "SourceIP",
+                "type": "string"
+              },
+              {
+                "name": "Asset",
+                "type": "string"
+              },
+              {
+                "name": "TimeGenerated",
+                "type": "datetime"
+              }
+            ],
+            "rows": [
+              [
+                "soc-password-spray-20261101T023648Z",
+                5,
+                5,
+                "2026-11-01T02:36:56.5900240Z",
+                "2026-11-01T02:37:04.8557860Z",
+                "[\"82.9.130.188\"]",
+                "[\"f7955c6bd3a1e1e1\",\"6ef4fe664b26c064\",\"08571ffd594acaf6\",\"c17617b535d10385\",\"2161a9e7a88b474d\"]",
+                "[\"soc-password-spray-20261101T023648Z-0-1793500620419\",\"soc-password-spray-20261101T023648Z-0-1793500618346\",\"soc-password-spray-20261101T023648Z-0-1793500622487\",\"soc-password-spray-20261101T023648Z-0-1793500616220\",\"soc-password-spray-20261101T023648Z-0-1793500624550\"]",
+                "82.9.130.188",
+                "Commerce API / secure-commerce-dev-app",
+                "2026-11-01T02:36:56.590024Z"
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "rule": "secure-commerce-dev-account_registration_burst",
+      "kind": "Scheduled",
+      "enabled": true,
+      "http_status": 200,
+      "result": {
+        "tables": [
+          {
+            "name": "PrimaryResult",
+            "columns": [
+              {
+                "name": "SimulationId",
+                "type": "string"
+              },
+              {
+                "name": "RejectedAttempts",
+                "type": "long"
+              },
+              {
+                "name": "FirstActivityUtc",
+                "type": "string"
+              },
+              {
+                "name": "LastActivityUtc",
+                "type": "string"
+              },
+              {
+                "name": "ObservedSources",
+                "type": "dynamic"
+              },
+              {
+                "name": "AccountHashes",
+                "type": "string"
+              },
+              {
+                "name": "RequestIds",
+                "type": "dynamic"
+              },
+              {
+                "name": "SourceIP",
+                "type": "string"
+              },
+              {
+                "name": "Asset",
+                "type": "string"
+              },
+              {
+                "name": "TimeGenerated",
+                "type": "datetime"
+              }
+            ],
+            "rows": [
+              [
+                "soc-registration-abuse-20261101T023820Z",
+                5,
+                "2026-11-01T02:38:23.7014360Z",
+                "2026-11-01T02:38:27.8469020Z",
+                "[\"82.9.130.188\"]",
+                "[\"5d85fc74ba452a05\"]",
+                "[\"soc-registration-abuse-20261101T023820Z-1-0-1793500704456\",\"soc-registration-abuse-20261101T023820Z-1-0-1793500703345\",\"soc-registration-abuse-20261101T023820Z-1-0-1793500705494\",\"soc-registration-abuse-20261101T023820Z-1-0-1793500706530\",\"soc-registration-abuse-20261101T023820Z-1-0-1793500707564\"]",
+                "82.9.130.188",
+                "Commerce API / secure-commerce-dev-app",
+                "2026-11-01T02:38:23.701436Z"
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "rule": "secure-commerce-dev-admin_activity",
+      "kind": "Scheduled",
+      "enabled": true,
+      "http_status": 200,
+      "result": {
+        "tables": [
+          {
+            "name": "PrimaryResult",
+            "columns": [
+              {
+                "name": "SimulationId",
+                "type": "string"
+              },
+              {
+                "name": "ActivityCount",
+                "type": "long"
+              },
+              {
+                "name": "FirstActivityUtc",
+                "type": "string"
+              },
+              {
+                "name": "LastActivityUtc",
+                "type": "string"
+              },
+              {
+                "name": "ObservedSources",
+                "type": "dynamic"
+              },
+              {
+                "name": "AccountHashes",
+                "type": "string"
+              },
+              {
+                "name": "RequestIds",
+                "type": "dynamic"
+              },
+              {
+                "name": "SourceIP",
+                "type": "string"
+              },
+              {
+                "name": "Asset",
+                "type": "string"
+              },
+              {
+                "name": "TimeGenerated",
+                "type": "datetime"
+              }
+            ],
+            "rows": [
+              [
+                "soc-admin-directory-20261101T023627Z",
+                3,
+                "2026-11-01T02:36:32.4081870Z",
+                "2026-11-01T02:36:34.4984070Z",
+                "[\"82.9.130.188\"]",
+                "[\"user:23\"]",
+                "[\"soc-admin-directory-20261101T023627Z-1-0-1793500594213\",\"soc-admin-directory-20261101T023627Z-1-0-1793500592119\",\"soc-admin-directory-20261101T023627Z-1-0-1793500593171\"]",
+                "82.9.130.188",
+                "Commerce API / secure-commerce-dev-app",
+                "2026-11-01T02:36:32.408187Z"
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "rule": "secure-commerce-dev-suspicious_request",
+      "kind": "Scheduled",
+      "enabled": true,
+      "http_status": 200,
+      "result": {
+        "tables": [
+          {
+            "name": "PrimaryResult",
+            "columns": [
+              {
+                "name": "SimulationId",
+                "type": "string"
+              },
+              {
+                "name": "SuspiciousCount",
+                "type": "long"
+              },
+              {
+                "name": "FirstActivityUtc",
+                "type": "string"
+              },
+              {
+                "name": "LastActivityUtc",
+                "type": "string"
+              },
+              {
+                "name": "ObservedSources",
+                "type": "dynamic"
+              },
+              {
+                "name": "AccountHashes",
+                "type": "string"
+              },
+              {
+                "name": "RequestIds",
+                "type": "dynamic"
+              },
+              {
+                "name": "SourceIP",
+                "type": "string"
+              },
+              {
+                "name": "Asset",
+                "type": "string"
+              },
+              {
+                "name": "TimeGenerated",
+                "type": "datetime"
+              }
+            ],
+            "rows": []
+          }
+        ]
+      }
+    }
+  ]
+}

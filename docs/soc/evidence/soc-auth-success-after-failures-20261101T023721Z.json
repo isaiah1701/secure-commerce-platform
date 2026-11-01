@@ -1,0 +1,121 @@
+{
+  "scenario": "auth-success-after-failures",
+  "simulation_id": "soc-auth-success-after-failures-20261101T023721Z",
+  "executed_utc": "20261101T023721Z",
+  "k6_exit_code": 0,
+  "requests": 5,
+  "checks_passed": 4,
+  "checks_failed": 0,
+  "max_vus": 1,
+  "credential_handling": "Transient runner file removed after validation; credentials are not stored in this evidence",
+  "telemetry": [
+    {
+      "Accounts": "[\"ca89a6c8d1d51a0b\"]",
+      "EventType": "AUTH_LOGIN_FAILURE",
+      "Events": "3",
+      "FirstActivityUtc": "2026-11-01T02:37:24.703744Z",
+      "LastActivityUtc": "2026-11-01T02:37:26.83636Z",
+      "ObservedSources": "[\"82.9.130.188\"]",
+      "Requests": "3",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "Accounts": "[\"\"]",
+      "EventType": "HTTP_REQUEST",
+      "Events": "4",
+      "FirstActivityUtc": "2026-11-01T02:37:24.704735Z",
+      "LastActivityUtc": "2026-11-01T02:37:27.918718Z",
+      "ObservedSources": "[\"82.9.130.188\"]",
+      "Requests": "4",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "Accounts": "[\"ca89a6c8d1d51a0b\"]",
+      "EventType": "AUTH_LOGIN_SUCCESS",
+      "Events": "1",
+      "FirstActivityUtc": "2026-11-01T02:37:27.917163Z",
+      "LastActivityUtc": "2026-11-01T02:37:27.917163Z",
+      "ObservedSources": "[\"82.9.130.188\"]",
+      "Requests": "1",
+      "TableName": "PrimaryResult"
+    }
+  ],
+  "chain": {
+    "incident_id": "5091222c-75b3-4050-a03d-bac25fff4f6c",
+    "incident_number": 69,
+    "severity": "Medium",
+    "alert_ids": [
+      "c4e2d2aa-f65b-0b32-e56f-b47ff44ce709"
+    ],
+    "rule_ids": [
+      "/subscriptions/43adc2c2-0fd5-4474-aa8a-9f32f541e4b7/resourceGroups/secure-commerce-dev-rg/providers/Microsoft.OperationalInsights/workspaces/secure-commerce-dev-law/providers/Microsoft.SecurityInsights/alertRules/secure-commerce-dev-suspicious_success"
+    ],
+    "logic_app_run": "08584081055643203262706563904CU58",
+    "logic_app_status": "Succeeded",
+    "actions": {
+      "Close_GLPI_Session": "Succeeded",
+      "Create_GLPI_BruteForce_Ticket": "Skipped",
+      "Create_GLPI_Ticket": "Succeeded",
+      "Create_GLPI_Ticket_If_Missing": "Succeeded",
+      "Filter_Existing_GLPI_Tickets": "Succeeded",
+      "Get_GLPI_API_Password": "Succeeded",
+      "Get_GLPI_API_Username": "Succeeded",
+      "Get_GLPI_App_Token": "Succeeded",
+      "Init_GLPI_Session": "Succeeded",
+      "Query_Commerce_Evidence": "Succeeded",
+      "Reject_Invalid_Incident": "Skipped",
+      "Reject_Invalid_Search": "Skipped",
+      "Route_GLPI_Ticket_By_Alert_Type": "Succeeded",
+      "Search_Existing_GLPI_Ticket": "Succeeded",
+      "Validate_GLPI_Search": "Succeeded",
+      "Validate_Incident": "Succeeded"
+    },
+    "ticket_id": 59,
+    "ticket_url": "https://ticket.platf0rm.site/front/ticket.form.php?id=59",
+    "ticket_count": 1,
+    "ticket_contains_incident_id": true,
+    "ticket_contains_scenario_id": true,
+    "ticket_sections": true,
+    "ticket_links": true,
+    "ticket_content_sha256": "bd8b5620bcb3f899ebe72b86747a21f29da96f557a5eee457f6167a8236baca1",
+    "log_analytics_result": [
+      {
+        "name": "PrimaryResult",
+        "columns": [
+          {
+            "name": "FirstActivityUtc",
+            "type": "string"
+          },
+          {
+            "name": "LastActivityUtc",
+            "type": "string"
+          },
+          {
+            "name": "ScenarioId",
+            "type": "string"
+          },
+          {
+            "name": "Asset",
+            "type": "string"
+          },
+          {
+            "name": "MatchingEvents",
+            "type": "long"
+          }
+        ],
+        "rows": [
+          [
+            "2026-11-01T02:37:24.7037440Z",
+            "2026-11-01T02:37:27.9187180Z",
+            "soc-auth-success-after-failures-20261101T023721Z",
+            "Commerce API / secure-commerce-dev-app",
+            8
+          ]
+        ]
+      }
+    ],
+    "observed_evidence_present": true,
+    "automatic_creation_succeeded": true
+  },
+  "status": "VERIFIED"
+}

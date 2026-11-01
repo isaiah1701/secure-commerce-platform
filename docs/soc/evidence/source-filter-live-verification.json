@@ -1,0 +1,25 @@
+{
+  "validated_utc": "2026-11-01T03:24:50.768333+00:00",
+  "incident_number": 68,
+  "replay_history": "08584081034804728359162320826CU61",
+  "logic_app_run": "08584081034804728359162320826CU61",
+  "logic_app_status": "Succeeded",
+  "source_ip_returned": "82.9.130.188",
+  "matching_events": 8,
+  "creation_actions": {
+    "Create_GLPI_BruteForce_Ticket": "Skipped",
+    "Create_GLPI_Ticket": "Skipped"
+  },
+  "ticket_id": 58,
+  "ticket_content_hash_unchanged": true,
+  "proxy_filter_ranges": [
+    "0.0.0.0/8",
+    "10.0.0.0/8",
+    "100.64.0.0/10",
+    "127.0.0.0/8",
+    "169.254.0.0/16",
+    "172.16.0.0/12",
+    "192.168.0.0/16"
+  ],
+  "verified": true
+}

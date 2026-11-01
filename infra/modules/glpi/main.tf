@@ -69,6 +69,7 @@ resource "azurerm_container_app" "main" {
   container_app_environment_id = var.container_app_environment_id
   revision_mode                = "Single"
   max_inactive_revisions       = 2
+  workload_profile_name        = "Consumption"
   tags                         = var.tags
 
   identity {

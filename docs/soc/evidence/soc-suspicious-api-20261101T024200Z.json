@@ -1,0 +1,112 @@
+{
+  "scenario": "suspicious-api",
+  "simulation_id": "soc-suspicious-api-20261101T024200Z",
+  "executed_utc": "20261101T024200Z",
+  "k6_exit_code": 0,
+  "requests": 2,
+  "checks_passed": 1,
+  "checks_failed": 0,
+  "max_vus": 1,
+  "credential_handling": "Transient runner file removed after validation; credentials are not stored in this evidence",
+  "telemetry": [
+    {
+      "Accounts": "[\"\"]",
+      "EventType": "SUSPICIOUS_REQUEST",
+      "Events": "1",
+      "FirstActivityUtc": "2026-11-01T02:42:03.51721Z",
+      "LastActivityUtc": "2026-11-01T02:42:03.51721Z",
+      "ObservedSources": "[\"82.9.130.188\"]",
+      "Requests": "1",
+      "TableName": "PrimaryResult"
+    },
+    {
+      "Accounts": "[\"\"]",
+      "EventType": "HTTP_REQUEST",
+      "Events": "1",
+      "FirstActivityUtc": "2026-11-01T02:42:03.525337Z",
+      "LastActivityUtc": "2026-11-01T02:42:03.525337Z",
+      "ObservedSources": "[\"82.9.130.188\"]",
+      "Requests": "1",
+      "TableName": "PrimaryResult"
+    }
+  ],
+  "chain": {
+    "incident_id": "9cf069e4-7826-45d8-a24f-0c863fb97460",
+    "incident_number": 73,
+    "severity": "Medium",
+    "alert_ids": [
+      "6a1bab94-a754-4f6d-b175-039d1d686584"
+    ],
+    "rule_ids": [
+      "/subscriptions/43adc2c2-0fd5-4474-aa8a-9f32f541e4b7/resourceGroups/secure-commerce-dev-rg/providers/Microsoft.OperationalInsights/workspaces/secure-commerce-dev-law/providers/Microsoft.SecurityInsights/alertRules/secure-commerce-dev-suspicious_request"
+    ],
+    "logic_app_run": "08584081054433390365380796450CU22",
+    "logic_app_status": "Succeeded",
+    "actions": {
+      "Close_GLPI_Session": "Succeeded",
+      "Close_Invalid_Search_Session": "Skipped",
+      "Create_GLPI_BruteForce_Ticket": "Skipped",
+      "Create_GLPI_Ticket": "Succeeded",
+      "Create_GLPI_Ticket_If_Missing": "Succeeded",
+      "Filter_Existing_GLPI_Tickets": "Succeeded",
+      "Get_GLPI_API_Password": "Succeeded",
+      "Get_GLPI_API_Username": "Succeeded",
+      "Get_GLPI_App_Token": "Succeeded",
+      "Init_GLPI_Session": "Succeeded",
+      "Query_Commerce_Evidence": "Succeeded",
+      "Reject_Invalid_Incident": "Skipped",
+      "Reject_Invalid_Search": "Skipped",
+      "Route_GLPI_Ticket_By_Alert_Type": "Succeeded",
+      "Search_Existing_GLPI_Ticket": "Succeeded",
+      "Validate_GLPI_Search": "Succeeded",
+      "Validate_Incident": "Succeeded"
+    },
+    "ticket_id": 63,
+    "ticket_url": "https://ticket.platf0rm.site/front/ticket.form.php?id=63",
+    "ticket_count": 1,
+    "ticket_contains_incident_id": true,
+    "ticket_contains_scenario_id": true,
+    "ticket_sections": true,
+    "ticket_links": true,
+    "ticket_content_sha256": "1a47a4128c91ae5d804e749a395056d8ddc4b7217fac987f5472d640e1eb60dc",
+    "log_analytics_result": [
+      {
+        "name": "PrimaryResult",
+        "columns": [
+          {
+            "name": "FirstActivityUtc",
+            "type": "string"
+          },
+          {
+            "name": "LastActivityUtc",
+            "type": "string"
+          },
+          {
+            "name": "ScenarioId",
+            "type": "string"
+          },
+          {
+            "name": "Asset",
+            "type": "string"
+          },
+          {
+            "name": "MatchingEvents",
+            "type": "long"
+          }
+        ],
+        "rows": [
+          [
+            "2026-11-01T02:42:03.5172100Z",
+            "2026-11-01T02:42:03.5253370Z",
+            "soc-suspicious-api-20261101T024200Z",
+            "Commerce API / secure-commerce-dev-app",
+            2
+          ]
+        ]
+      }
+    ],
+    "observed_evidence_present": true,
+    "automatic_creation_succeeded": true
+  },
+  "status": "VERIFIED"
+}

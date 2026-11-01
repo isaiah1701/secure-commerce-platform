@@ -4,3 +4,8 @@
 **/.pytest_cache
 **/node_modules
 frontend/dist
+**/.venv
+**/.ruff_cache
+infra
+docs
+soc

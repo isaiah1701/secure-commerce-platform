@@ -5,7 +5,7 @@ import uuid
 
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from app.observability.logging import logger, security_event
+from app.observability.logging import logger, security_event, source_ip
 from app.observability.metrics import REQUEST_DURATION, REQUESTS
 
 REQUEST_ID_RE = re.compile(r"^[A-Za-z0-9._-]{1,100}$")
@@ -52,7 +52,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
                 "duration_ms": duration_ms,
                 "user_id": request.state.user_id,
                 "user_role": request.state.user_role,
-                "source_ip": request.client.host if request.client else None,
+                "source_ip": source_ip(request),
                 "user_agent": request.headers.get("user-agent", "")[:300],
             },
         )

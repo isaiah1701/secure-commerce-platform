@@ -1,0 +1,4 @@
+events
+| where EventType == "AUTH_FORBIDDEN"
+| summarize ProbeCount=dcount(RequestId), FirstActivityUtc=min(ActivityTime), LastActivityUtc=max(ActivityTime), ObservedSources=make_set_if(SourceIP, SourceIP!="unknown", 10), AccountHashes=make_set(strcat("user:", ActorId), 20), RequestIds=make_set(RequestId, 30) by SimulationId
+| where ProbeCount >= 3

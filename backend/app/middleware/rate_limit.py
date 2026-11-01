@@ -6,7 +6,7 @@ from collections import defaultdict, deque
 from fastapi import HTTPException, Request, status
 
 from app.core.config import get_settings
-from app.observability.logging import security_event
+from app.observability.logging import security_event, source_ip
 
 
 class InMemoryRateLimiter:
@@ -17,7 +17,7 @@ class InMemoryRateLimiter:
     def check(self, request: Request, scope: str) -> None:
         settings = get_settings()
         now = time.monotonic()
-        ip = request.client.host if request.client else "unknown"
+        ip = source_ip(request)
         key = f"{scope}:{ip}"
         with self._lock:
             attempts = self._attempts[key]

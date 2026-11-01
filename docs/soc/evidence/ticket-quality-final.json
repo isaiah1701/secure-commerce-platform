@@ -1,0 +1,242 @@
+{
+  "validated_utc": "2026-11-01T03:20:17.475480+00:00",
+  "ticket_count": 8,
+  "all_ticket_quality_checks_passed": true,
+  "checks": [
+    "short title and summary",
+    "severity and UTC window",
+    "affected Commerce API",
+    "scenario correlation",
+    "actual observed source",
+    "Sentinel href",
+    "tenant-aware workspace overview href",
+    "concise analyst steps and definition of done",
+    "no raw logs or prewritten findings"
+  ],
+  "tickets": [
+    {
+      "scenario": "admin-directory",
+      "incident_number": 68,
+      "incident_id": "ae0afadb-9a0d-426c-b8b2-23359fbdfbc6",
+      "ticket_id": 58,
+      "ticket_url": "https://ticket.platf0rm.site/front/ticket.form.php?id=58",
+      "severity": "Low",
+      "observed_source": "82.9.130.188",
+      "correlation_id": "soc-admin-directory-20261101T023627Z",
+      "hrefs": [
+        "https://portal.azure.com/#asset/Microsoft_Azure_Security_Insights/Incident/subscriptions/43adc2c2-0fd5-4474-aa8a-9f32f541e4b7/resourceGroups/secure-commerce-dev-rg/providers/Microsoft.OperationalInsights/workspaces/secure-commerce-dev-law/providers/Microsoft.SecurityInsights/Incidents/ae0afadb-9a0d-426c-b8b2-23359fbdfbc6",
+        "https://portal.azure.com/#@cdd8b4e5-ab12-4d43-a01d-0e70523c17ac/resource/subscriptions/43adc2c2-0fd5-4474-aa8a-9f32f541e4b7/resourceGroups/secure-commerce-dev-rg/providers/Microsoft.OperationalInsights/workspaces/secure-commerce-dev-law/overview"
+      ],
+      "content_sha256": "ab598b22dd9bc28d8377c42b8bb286c9b53560113ae5ed8b6b491b2bc4e08237",
+      "checks": {
+        "short_title": true,
+        "summary_and_investigation_sections": true,
+        "severity_and_utc_window": true,
+        "affected_asset": true,
+        "correlation_id": true,
+        "actual_observed_source": true,
+        "sentinel_link": true,
+        "tenant_aware_workspace_link": true,
+        "no_raw_logs": true,
+        "no_verdict": true
+      },
+      "verified": true
+    },
+    {
+      "scenario": "api-read-burst",
+      "incident_number": 71,
+      "incident_id": "34ebaea6-b5ef-4b3b-9563-5c5d60b05b86",
+      "ticket_id": 61,
+      "ticket_url": "https://ticket.platf0rm.site/front/ticket.form.php?id=61",
+      "severity": "Low",
+      "observed_source": "82.9.130.188",
+      "correlation_id": "soc-api-read-burst-20261101T023909Z",
+      "hrefs": [
+        "https://portal.azure.com/#asset/Microsoft_Azure_Security_Insights/Incident/subscriptions/43adc2c2-0fd5-4474-aa8a-9f32f541e4b7/resourceGroups/secure-commerce-dev-rg/providers/Microsoft.OperationalInsights/workspaces/secure-commerce-dev-law/providers/Microsoft.SecurityInsights/Incidents/34ebaea6-b5ef-4b3b-9563-5c5d60b05b86",
+        "https://portal.azure.com/#@cdd8b4e5-ab12-4d43-a01d-0e70523c17ac/resource/subscriptions/43adc2c2-0fd5-4474-aa8a-9f32f541e4b7/resourceGroups/secure-commerce-dev-rg/providers/Microsoft.OperationalInsights/workspaces/secure-commerce-dev-law/overview"
+      ],
+      "content_sha256": "1d5738d7be6ba6ff76fe953aba43c2fc2d2b70d8c9703da37ab7be0c2e344214",
+      "checks": {
+        "short_title": true,
+        "summary_and_investigation_sections": true,
+        "severity_and_utc_window": true,
+        "affected_asset": true,
+        "correlation_id": true,
+        "actual_observed_source": true,
+        "sentinel_link": true,
+        "tenant_aware_workspace_link": true,
+        "no_raw_logs": true,
+        "no_verdict": true
+      },
+      "verified": true
+    },
+    {
+      "scenario": "auth-lockout",
+      "incident_number": 66,
+      "incident_id": "057517db-1a7d-480f-9c4a-44daae6b2712",
+      "ticket_id": 57,
+      "ticket_url": "https://ticket.platf0rm.site/front/ticket.form.php?id=57",
+      "severity": "Medium",
+      "observed_source": "82.9.130.188",
+      "correlation_id": "soc-auth-lockout-20261101T023544Z",
+      "hrefs": [
+        "https://portal.azure.com/#asset/Microsoft_Azure_Security_Insights/Incident/subscriptions/43adc2c2-0fd5-4474-aa8a-9f32f541e4b7/resourceGroups/secure-commerce-dev-rg/providers/Microsoft.OperationalInsights/workspaces/secure-commerce-dev-law/providers/Microsoft.SecurityInsights/Incidents/057517db-1a7d-480f-9c4a-44daae6b2712",
+        "https://portal.azure.com/#@cdd8b4e5-ab12-4d43-a01d-0e70523c17ac/resource/subscriptions/43adc2c2-0fd5-4474-aa8a-9f32f541e4b7/resourceGroups/secure-commerce-dev-rg/providers/Microsoft.OperationalInsights/workspaces/secure-commerce-dev-law/overview"
+      ],
+      "content_sha256": "9500476db78a51c687672c4e8dc4d36e761d0465d42a439f5e36f6990cb18e52",
+      "checks": {
+        "short_title": true,
+        "summary_and_investigation_sections": true,
+        "severity_and_utc_window": true,
+        "affected_asset": true,
+        "correlation_id": true,
+        "actual_observed_source": true,
+        "sentinel_link": true,
+        "tenant_aware_workspace_link": true,
+        "no_raw_logs": true,
+        "no_verdict": true
+      },
+      "verified": true
+    },
+    {
+      "scenario": "auth-success-after-failures",
+      "incident_number": 69,
+      "incident_id": "5091222c-75b3-4050-a03d-bac25fff4f6c",
+      "ticket_id": 59,
+      "ticket_url": "https://ticket.platf0rm.site/front/ticket.form.php?id=59",
+      "severity": "Medium",
+      "observed_source": "82.9.130.188",
+      "correlation_id": "soc-auth-success-after-failures-20261101T023721Z",
+      "hrefs": [
+        "https://portal.azure.com/#asset/Microsoft_Azure_Security_Insights/Incident/subscriptions/43adc2c2-0fd5-4474-aa8a-9f32f541e4b7/resourceGroups/secure-commerce-dev-rg/providers/Microsoft.OperationalInsights/workspaces/secure-commerce-dev-law/providers/Microsoft.SecurityInsights/Incidents/5091222c-75b3-4050-a03d-bac25fff4f6c",
+        "https://portal.azure.com/#@cdd8b4e5-ab12-4d43-a01d-0e70523c17ac/resource/subscriptions/43adc2c2-0fd5-4474-aa8a-9f32f541e4b7/resourceGroups/secure-commerce-dev-rg/providers/Microsoft.OperationalInsights/workspaces/secure-commerce-dev-law/overview"
+      ],
+      "content_sha256": "cdb774a4e7e5702120a64bcf235ef7328354c7750ad77b9b7b5d53874d1d1f83",
+      "checks": {
+        "short_title": true,
+        "summary_and_investigation_sections": true,
+        "severity_and_utc_window": true,
+        "affected_asset": true,
+        "correlation_id": true,
+        "actual_observed_source": true,
+        "sentinel_link": true,
+        "tenant_aware_workspace_link": true,
+        "no_raw_logs": true,
+        "no_verdict": true
+      },
+      "verified": true
+    },
+    {
+      "scenario": "password-spray",
+      "incident_number": 67,
+      "incident_id": "caae16a0-bed7-498a-adbd-5d21578adedc",
+      "ticket_id": 56,
+      "ticket_url": "https://ticket.platf0rm.site/front/ticket.form.php?id=56",
+      "severity": "Medium",
+      "observed_source": "82.9.130.188",
+      "correlation_id": "soc-password-spray-20261101T023648Z",
+      "hrefs": [
+        "https://portal.azure.com/#asset/Microsoft_Azure_Security_Insights/Incident/subscriptions/43adc2c2-0fd5-4474-aa8a-9f32f541e4b7/resourceGroups/secure-commerce-dev-rg/providers/Microsoft.OperationalInsights/workspaces/secure-commerce-dev-law/providers/Microsoft.SecurityInsights/Incidents/caae16a0-bed7-498a-adbd-5d21578adedc",
+        "https://portal.azure.com/#@cdd8b4e5-ab12-4d43-a01d-0e70523c17ac/resource/subscriptions/43adc2c2-0fd5-4474-aa8a-9f32f541e4b7/resourceGroups/secure-commerce-dev-rg/providers/Microsoft.OperationalInsights/workspaces/secure-commerce-dev-law/overview"
+      ],
+      "content_sha256": "005912e98171da613017e7d5be29cb70691295726da46e7f98466f5ce84b63a6",
+      "checks": {
+        "short_title": true,
+        "summary_and_investigation_sections": true,
+        "severity_and_utc_window": true,
+        "affected_asset": true,
+        "correlation_id": true,
+        "actual_observed_source": true,
+        "sentinel_link": true,
+        "tenant_aware_workspace_link": true,
+        "no_raw_logs": true,
+        "no_verdict": true
+      },
+      "verified": true
+    },
+    {
+      "scenario": "privilege-probe",
+      "incident_number": 72,
+      "incident_id": "621cf6b3-4ad2-42a5-8649-ab15abda4069",
+      "ticket_id": 62,
+      "ticket_url": "https://ticket.platf0rm.site/front/ticket.form.php?id=62",
+      "severity": "Medium",
+      "observed_source": "82.9.130.188",
+      "correlation_id": "soc-privilege-probe-20261101T023806Z",
+      "hrefs": [
+        "https://portal.azure.com/#asset/Microsoft_Azure_Security_Insights/Incident/subscriptions/43adc2c2-0fd5-4474-aa8a-9f32f541e4b7/resourceGroups/secure-commerce-dev-rg/providers/Microsoft.OperationalInsights/workspaces/secure-commerce-dev-law/providers/Microsoft.SecurityInsights/Incidents/621cf6b3-4ad2-42a5-8649-ab15abda4069",
+        "https://portal.azure.com/#@cdd8b4e5-ab12-4d43-a01d-0e70523c17ac/resource/subscriptions/43adc2c2-0fd5-4474-aa8a-9f32f541e4b7/resourceGroups/secure-commerce-dev-rg/providers/Microsoft.OperationalInsights/workspaces/secure-commerce-dev-law/overview"
+      ],
+      "content_sha256": "cb5075d706cf4ffb0c8c21c8f4cfd5cc76f3a1f2c2b08456153c7839645b25e3",
+      "checks": {
+        "short_title": true,
+        "summary_and_investigation_sections": true,
+        "severity_and_utc_window": true,
+        "affected_asset": true,
+        "correlation_id": true,
+        "actual_observed_source": true,
+        "sentinel_link": true,
+        "tenant_aware_workspace_link": true,
+        "no_raw_logs": true,
+        "no_verdict": true
+      },
+      "verified": true
+    },
+    {
+      "scenario": "registration-abuse",
+      "incident_number": 70,
+      "incident_id": "e978070c-2a61-459f-b48b-3dc5ce02a8ba",
+      "ticket_id": 60,
+      "ticket_url": "https://ticket.platf0rm.site/front/ticket.form.php?id=60",
+      "severity": "Low",
+      "observed_source": "82.9.130.188",
+      "correlation_id": "soc-registration-abuse-20261101T023820Z",
+      "hrefs": [
+        "https://portal.azure.com/#asset/Microsoft_Azure_Security_Insights/Incident/subscriptions/43adc2c2-0fd5-4474-aa8a-9f32f541e4b7/resourceGroups/secure-commerce-dev-rg/providers/Microsoft.OperationalInsights/workspaces/secure-commerce-dev-law/providers/Microsoft.SecurityInsights/Incidents/e978070c-2a61-459f-b48b-3dc5ce02a8ba",
+        "https://portal.azure.com/#@cdd8b4e5-ab12-4d43-a01d-0e70523c17ac/resource/subscriptions/43adc2c2-0fd5-4474-aa8a-9f32f541e4b7/resourceGroups/secure-commerce-dev-rg/providers/Microsoft.OperationalInsights/workspaces/secure-commerce-dev-law/overview"
+      ],
+      "content_sha256": "7b74f149ed66c95230c2fb940d5c1c347cd7177b812d1faca105188e24350545",
+      "checks": {
+        "short_title": true,
+        "summary_and_investigation_sections": true,
+        "severity_and_utc_window": true,
+        "affected_asset": true,
+        "correlation_id": true,
+        "actual_observed_source": true,
+        "sentinel_link": true,
+        "tenant_aware_workspace_link": true,
+        "no_raw_logs": true,
+        "no_verdict": true
+      },
+      "verified": true
+    },
+    {
+      "scenario": "suspicious-api",
+      "incident_number": 73,
+      "incident_id": "9cf069e4-7826-45d8-a24f-0c863fb97460",
+      "ticket_id": 63,
+      "ticket_url": "https://ticket.platf0rm.site/front/ticket.form.php?id=63",
+      "severity": "Medium",
+      "observed_source": "82.9.130.188",
+      "correlation_id": "soc-suspicious-api-20261101T024200Z",
+      "hrefs": [
+        "https://portal.azure.com/#asset/Microsoft_Azure_Security_Insights/Incident/subscriptions/43adc2c2-0fd5-4474-aa8a-9f32f541e4b7/resourceGroups/secure-commerce-dev-rg/providers/Microsoft.OperationalInsights/workspaces/secure-commerce-dev-law/providers/Microsoft.SecurityInsights/Incidents/9cf069e4-7826-45d8-a24f-0c863fb97460",
+        "https://portal.azure.com/#@cdd8b4e5-ab12-4d43-a01d-0e70523c17ac/resource/subscriptions/43adc2c2-0fd5-4474-aa8a-9f32f541e4b7/resourceGroups/secure-commerce-dev-rg/providers/Microsoft.OperationalInsights/workspaces/secure-commerce-dev-law/overview"
+      ],
+      "content_sha256": "9cf3d04b7a8f30f071a33171b7ad04afc484ce71b3103292851aae627ce1ec86",
+      "checks": {
+        "short_title": true,
+        "summary_and_investigation_sections": true,
+        "severity_and_utc_window": true,
+        "affected_asset": true,
+        "correlation_id": true,
+        "actual_observed_source": true,
+        "sentinel_link": true,
+        "tenant_aware_workspace_link": true,
+        "no_raw_logs": true,
+        "no_verdict": true
+      },
+      "verified": true
+    }
+  ]
+}

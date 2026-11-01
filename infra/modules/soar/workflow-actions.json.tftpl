@@ -1,0 +1,444 @@
+{
+  "Validate_Incident": {
+    "type": "If",
+    "expression": {
+      "and": [
+        {
+          "equals": [
+            "@length(coalesce(triggerBody()?['object']?['name'], last(split(coalesce(triggerBody()?['object']?['id'], ''), '/'))))",
+            36
+          ]
+        },
+        {
+          "startsWith": [
+            "@toLower(string(triggerBody()?['object']?['id']))",
+            "${workspace_id_lower}/providers/microsoft.securityinsights/incidents/"
+          ]
+        },
+        {
+          "not": {
+            "equals": [
+              "@triggerBody()?['object']?['properties']?['incidentNumber']",
+              null
+            ]
+          }
+        }
+      ]
+    },
+    "actions": {},
+    "else": {
+      "actions": {
+        "Reject_Invalid_Incident": {
+          "type": "Terminate",
+          "inputs": {
+            "runStatus": "Failed",
+            "runError": {
+              "code": "InvalidIncident",
+              "message": "Expected a Sentinel incident from the configured lab workspace"
+            }
+          }
+        }
+      }
+    },
+    "runAfter": {}
+  },
+  "Get_GLPI_API_Username": {
+    "type": "Http",
+    "inputs": {
+      "method": "GET",
+      "uri": "https://${key_vault_name}.vault.azure.net/secrets/soc-glpi-api-username?api-version=7.4",
+      "authentication": {
+        "type": "ManagedServiceIdentity",
+        "audience": "https://vault.azure.net"
+      },
+      "retryPolicy": {
+        "type": "exponential",
+        "count": 3,
+        "interval": "PT10S"
+      }
+    },
+    "runtimeConfiguration": {
+      "secureData": {
+        "properties": [
+          "inputs",
+          "outputs"
+        ]
+      }
+    },
+    "runAfter": {
+      "Validate_Incident": [
+        "Succeeded"
+      ]
+    }
+  },
+  "Get_GLPI_API_Password": {
+    "type": "Http",
+    "inputs": {
+      "method": "GET",
+      "uri": "https://${key_vault_name}.vault.azure.net/secrets/soc-glpi-api-password?api-version=7.4",
+      "authentication": {
+        "type": "ManagedServiceIdentity",
+        "audience": "https://vault.azure.net"
+      },
+      "retryPolicy": {
+        "type": "exponential",
+        "count": 3,
+        "interval": "PT10S"
+      }
+    },
+    "runtimeConfiguration": {
+      "secureData": {
+        "properties": [
+          "inputs",
+          "outputs"
+        ]
+      }
+    },
+    "runAfter": {
+      "Validate_Incident": [
+        "Succeeded"
+      ]
+    }
+  },
+  "Get_GLPI_App_Token": {
+    "type": "Http",
+    "inputs": {
+      "method": "GET",
+      "uri": "https://${key_vault_name}.vault.azure.net/secrets/soc-glpi-app-token?api-version=7.4",
+      "authentication": {
+        "type": "ManagedServiceIdentity",
+        "audience": "https://vault.azure.net"
+      },
+      "retryPolicy": {
+        "type": "exponential",
+        "count": 3,
+        "interval": "PT10S"
+      }
+    },
+    "runtimeConfiguration": {
+      "secureData": {
+        "properties": [
+          "inputs",
+          "outputs"
+        ]
+      }
+    },
+    "runAfter": {
+      "Validate_Incident": [
+        "Succeeded"
+      ]
+    }
+  },
+  "Init_GLPI_Session": {
+    "type": "Http",
+    "inputs": {
+      "method": "GET",
+      "uri": "${glpi_api_url}/apirest.php/initSession/",
+      "headers": {
+        "Content-Type": "application/json",
+        "App-Token": "@{body('Get_GLPI_App_Token')?['value']}",
+        "Authorization": "@{concat('Basic ', base64(concat(body('Get_GLPI_API_Username')?['value'], ':', body('Get_GLPI_API_Password')?['value'])))}"
+      },
+      "retryPolicy": {
+        "type": "exponential",
+        "count": 3,
+        "interval": "PT10S"
+      }
+    },
+    "runtimeConfiguration": {
+      "secureData": {
+        "properties": [
+          "inputs",
+          "outputs"
+        ]
+      }
+    },
+    "runAfter": {
+      "Get_GLPI_API_Username": [
+        "Succeeded"
+      ],
+      "Get_GLPI_API_Password": [
+        "Succeeded"
+      ],
+      "Get_GLPI_App_Token": [
+        "Succeeded"
+      ]
+    }
+  },
+  "Query_Commerce_Evidence": {
+    "type": "Http",
+    "inputs": {
+      "method": "POST",
+      "uri": "https://api.loganalytics.azure.com/v1/workspaces/${workspace_customer_id}/query",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "authentication": {
+        "type": "ManagedServiceIdentity",
+        "audience": "https://api.loganalytics.io"
+      },
+      "body": {
+        "query": "let raw_details=parse_json(base64_decode_tostring('@{base64(string(coalesce(triggerBody()?['object']?['properties']?['alerts']?[0]?['properties']?['additionalData']?['Custom Details'], '{}')))}'));\nlet details=iff(gettype(raw_details)=='string', parse_json(tostring(raw_details)), raw_details);\nlet scenario_id=iff(gettype(details.ScenarioId)=='array', tostring(details.ScenarioId[0]), tostring(details.ScenarioId));\nlet incident_start=datetime('@{coalesce(triggerBody()?['object']?['properties']?['firstActivityTimeUtc'], triggerBody()?['object']?['properties']?['createdTimeUtc'])}');\nlet incident_end=datetime('@{coalesce(triggerBody()?['object']?['properties']?['lastActivityTimeUtc'], triggerBody()?['object']?['properties']?['createdTimeUtc'])}');\nContainerAppConsoleLogs_CL\n| where TimeGenerated between (incident_start - 15m .. incident_end + 15m)\n| where ContainerAppName_s == \"${app_name}\"\n| extend payload=parse_json(Log_s)\n| where isnotempty(scenario_id) and tostring(payload.simulation_id)==scenario_id\n| extend ObservedIP=tostring(payload.source_ip)\n| extend SourceIP=iff(isempty(ObservedIP) or ObservedIP in (\"unknown\", \"::1\") or coalesce(ipv4_is_in_any_range(ObservedIP, dynamic([\"0.0.0.0/8\", \"10.0.0.0/8\", \"100.64.0.0/10\", \"127.0.0.0/8\", \"169.254.0.0/16\", \"172.16.0.0/12\", \"192.168.0.0/16\"])), false), \"unknown\", ObservedIP)\n| extend ActivityTime=coalesce(todatetime(payload.timestamp), TimeGenerated)\n| summarize FirstActivityUtc=min(ActivityTime), LastActivityUtc=max(ActivityTime), MatchingEvents=count(), ObservedSources=make_set_if(SourceIP, SourceIP!=\"unknown\", 10)\n| project FirstActivityUtc=iff(MatchingEvents>0,tostring(FirstActivityUtc),\"Unavailable\"), LastActivityUtc=iff(MatchingEvents>0,tostring(LastActivityUtc),\"Unavailable\"), ScenarioId=iff(isnotempty(scenario_id),scenario_id,\"Unavailable\"), Asset=iff(MatchingEvents>0,\"Commerce API / ${app_name}\",\"See Sentinel entities\"), MatchingEvents, SourceIP=iff(array_length(ObservedSources)==1,tostring(ObservedSources[0]),iff(array_length(ObservedSources)>1,\"multiple (review Log Analytics)\",\"unknown\"))"
+      },
+      "retryPolicy": {
+        "type": "exponential",
+        "count": 3,
+        "interval": "PT10S"
+      }
+    },
+    "runAfter": {
+      "Init_GLPI_Session": [
+        "Succeeded"
+      ]
+    }
+  },
+  "Search_Existing_GLPI_Ticket": {
+    "type": "Http",
+    "inputs": {
+      "method": "GET",
+      "uri": "${glpi_api_url}/apirest.php/search/Ticket/",
+      "headers": {
+        "Content-Type": "application/json",
+        "App-Token": "@{body('Get_GLPI_App_Token')?['value']}",
+        "Session-Token": "@{body('Init_GLPI_Session')?['session_token']}"
+      },
+      "queries": {
+        "criteria[0][field]": "1",
+        "criteria[0][searchtype]": "contains",
+        "criteria[0][value]": "@{coalesce(triggerBody()?['object']?['name'], last(split(coalesce(triggerBody()?['object']?['id'], ''), '/')))}",
+        "criteria[1][field]": "1",
+        "criteria[1][searchtype]": "contains",
+        "criteria[1][value]": "@{concat('Sentinel incident ', string(triggerBody()?['object']?['properties']?['incidentNumber']))}",
+        "criteria[1][link]": "OR"
+      },
+      "retryPolicy": {
+        "type": "exponential",
+        "count": 3,
+        "interval": "PT10S"
+      }
+    },
+    "runtimeConfiguration": {
+      "secureData": {
+        "properties": [
+          "inputs",
+          "outputs"
+        ]
+      }
+    },
+    "runAfter": {
+      "Query_Commerce_Evidence": [
+        "Succeeded"
+      ]
+    }
+  },
+  "Validate_GLPI_Search": {
+    "type": "If",
+    "expression": {
+      "and": [
+        {
+          "contains": [
+            "@body('Search_Existing_GLPI_Ticket')",
+            "totalcount"
+          ]
+        },
+        {
+          "or": [
+            {
+              "and": [
+                {"equals": ["@body('Search_Existing_GLPI_Ticket')?['totalcount']", 0]},
+                {"equals": ["@length(coalesce(body('Search_Existing_GLPI_Ticket')?['data'], json('[]')))", 0]}
+              ]
+            },
+            {
+              "and": [
+                {"greater": ["@body('Search_Existing_GLPI_Ticket')?['totalcount']", 0]},
+                {"greater": ["@length(coalesce(body('Search_Existing_GLPI_Ticket')?['data'], json('[]')))", 0]}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "actions": {},
+    "else": {
+      "actions": {
+        "Close_Invalid_Search_Session": {
+          "type": "Http",
+          "inputs": {
+            "method": "DELETE",
+            "uri": "${glpi_api_url}/apirest.php/killSession/",
+            "headers": {
+              "App-Token": "@{body('Get_GLPI_App_Token')?['value']}",
+              "Session-Token": "@{body('Init_GLPI_Session')?['session_token']}"
+            },
+            "retryPolicy": {"type": "exponential", "count": 3, "interval": "PT10S"}
+          },
+          "runtimeConfiguration": {"secureData": {"properties": ["inputs", "outputs"]}},
+          "runAfter": {}
+        },
+        "Reject_Invalid_Search": {
+          "type": "Terminate",
+          "inputs": {
+            "runStatus": "Failed",
+            "runError": {
+              "code": "InvalidGLPISearch",
+              "message": "GLPI did not return a valid ticket search result"
+            }
+          },
+          "runAfter": {"Close_Invalid_Search_Session": ["Succeeded", "Failed", "TimedOut", "Skipped"]}
+        }
+      }
+    },
+    "runAfter": {
+      "Search_Existing_GLPI_Ticket": [
+        "Succeeded"
+      ]
+    }
+  },
+  "Filter_Existing_GLPI_Tickets": {
+    "type": "Query",
+    "inputs": {
+      "from": "@coalesce(body('Search_Existing_GLPI_Ticket')?['data'], json('[]'))",
+      "where": "@or(contains(string(item()?['1']), coalesce(triggerBody()?['object']?['name'], last(split(coalesce(triggerBody()?['object']?['id'], ''), '/')))), endsWith(string(item()?['1']), concat('Sentinel incident ', string(triggerBody()?['object']?['properties']?['incidentNumber']))), contains(string(item()?['1']), concat('Sentinel incident ', string(triggerBody()?['object']?['properties']?['incidentNumber']), ' - ')))"
+    },
+    "runAfter": {
+      "Validate_GLPI_Search": [
+        "Succeeded"
+      ]
+    }
+  },
+  "Create_GLPI_Ticket_If_Missing": {
+    "type": "If",
+    "expression": {
+      "equals": [
+        "@length(body('Filter_Existing_GLPI_Tickets'))",
+        0
+      ]
+    },
+    "actions": {
+      "Route_GLPI_Ticket_By_Alert_Type": {
+        "type": "If",
+        "expression": {
+          "equals": [
+            "@toLower(string(triggerBody()?['object']?['properties']?['title']))",
+            "soc - repeated failed authentication"
+          ]
+        },
+        "actions": {
+          "Create_GLPI_BruteForce_Ticket": {
+            "type": "Http",
+            "inputs": {
+              "method": "POST",
+              "uri": "${glpi_api_url}/apirest.php/Ticket/",
+              "headers": {
+                "Content-Type": "application/json",
+                "App-Token": "@{body('Get_GLPI_App_Token')?['value']}",
+                "Session-Token": "@{body('Init_GLPI_Session')?['session_token']}"
+              },
+              "body": {
+                "input": {
+                  "name": "Potential Brute-Force Attack – Commerce Authentication — Sentinel incident @{string(triggerBody()?['object']?['properties']?['incidentNumber'])} [@{coalesce(triggerBody()?['object']?['name'], last(split(coalesce(triggerBody()?['object']?['id'], ''), '/')))}]",
+                  "content": "<h2>SOC Investigation Case</h2>\n<h3>Incident Summary</h3>\n<p>Microsoft Sentinel detected activity requiring review: <strong>@{replace(replace(replace(string(triggerBody()?['object']?['properties']?['title']), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</strong>.</p>\n<ul>\n<li><strong>Sentinel incident:</strong> @{string(triggerBody()?['object']?['properties']?['incidentNumber'])} — @{coalesce(triggerBody()?['object']?['name'], last(split(coalesce(triggerBody()?['object']?['id'], ''), '/')))}</li>\n<li><strong>Severity:</strong> @{triggerBody()?['object']?['properties']?['severity']}</li>\n<li><strong>Detection window (UTC):</strong> @{triggerBody()?['object']?['properties']?['firstActivityTimeUtc']} to @{triggerBody()?['object']?['properties']?['lastActivityTimeUtc']}</li>\n<li><strong>Observed activity (UTC):</strong> @{body('Query_Commerce_Evidence')?['tables']?[0]?['rows']?[0]?[0]} to @{body('Query_Commerce_Evidence')?['tables']?[0]?['rows']?[0]?[1]}</li>\n<li><strong>Affected asset:</strong> @{body('Query_Commerce_Evidence')?['tables']?[0]?['rows']?[0]?[3]}</li>\n<li><strong>Correlation ID:</strong> @{body('Query_Commerce_Evidence')?['tables']?[0]?['rows']?[0]?[2]}</li>\n<li><strong>Observed source:</strong> @{replace(replace(replace(string(body('Query_Commerce_Evidence')?['tables']?[0]?['rows']?[0]?[5]), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</li>\n</ul>\n<p><a href=\"@{triggerBody()?['object']?['properties']?['incidentUrl']}\">Open Sentinel incident</a><br><a href=\"https://portal.azure.com/#@${tenant_id}/resource${workspace_id}/overview\">Open the scoped Log Analytics workspace</a></p>\n<h3>Investigation Objective</h3>\n<p>Establish the activity, affected identities and resources, and potential impact. Determine the appropriate classification and response.</p>\n<h3>Investigation Steps</h3>\n<ol><li>Review the Sentinel alert, severity, entities, and timeline.</li><li>Use Log Analytics to correlate the account, requests, outcomes, and activity times.</li><li>Assess control effectiveness, scope, and potential impact.</li><li>Record evidence, recommend any containment, and decide whether to escalate.</li></ol>\n<h3>Definition of Done</h3>\n<p>Document the timeline, evidence links, affected entities, classification, confidence, response recommendations, and escalation or closure justification. Keep the case open when the evidence is inconclusive.</p>",
+                  "type": 1,
+                  "itilcategories_id": 0,
+                  "priority": "@if(equals(triggerBody()?['object']?['properties']?['severity'], 'High'), 4, if(equals(triggerBody()?['object']?['properties']?['severity'], 'Medium'), 3, 2))",
+                  "users_id_recipient": 7
+                }
+              },
+              "retryPolicy": {
+                "type": "none"
+              }
+            },
+            "runtimeConfiguration": {
+              "secureData": {
+                "properties": [
+                  "inputs",
+                  "outputs"
+                ]
+              }
+            },
+            "runAfter": {}
+          }
+        },
+        "else": {
+          "actions": {
+            "Create_GLPI_Ticket": {
+              "type": "Http",
+              "inputs": {
+                "method": "POST",
+                "uri": "${glpi_api_url}/apirest.php/Ticket/",
+                "headers": {
+                  "Content-Type": "application/json",
+                  "App-Token": "@{body('Get_GLPI_App_Token')?['value']}",
+                  "Session-Token": "@{body('Init_GLPI_Session')?['session_token']}"
+                },
+                "body": {
+                  "input": {
+                    "name": "SOC — @{triggerBody()?['object']?['properties']?['title']} — Sentinel incident @{string(triggerBody()?['object']?['properties']?['incidentNumber'])} [@{coalesce(triggerBody()?['object']?['name'], last(split(coalesce(triggerBody()?['object']?['id'], ''), '/')))}]",
+                    "content": "<h2>SOC Investigation Case</h2>\n<h3>Incident Summary</h3>\n<p>Microsoft Sentinel detected activity requiring review: <strong>@{replace(replace(replace(string(triggerBody()?['object']?['properties']?['title']), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</strong>.</p>\n<ul>\n<li><strong>Sentinel incident:</strong> @{string(triggerBody()?['object']?['properties']?['incidentNumber'])} — @{coalesce(triggerBody()?['object']?['name'], last(split(coalesce(triggerBody()?['object']?['id'], ''), '/')))}</li>\n<li><strong>Severity:</strong> @{triggerBody()?['object']?['properties']?['severity']}</li>\n<li><strong>Detection window (UTC):</strong> @{triggerBody()?['object']?['properties']?['firstActivityTimeUtc']} to @{triggerBody()?['object']?['properties']?['lastActivityTimeUtc']}</li>\n<li><strong>Observed activity (UTC):</strong> @{body('Query_Commerce_Evidence')?['tables']?[0]?['rows']?[0]?[0]} to @{body('Query_Commerce_Evidence')?['tables']?[0]?['rows']?[0]?[1]}</li>\n<li><strong>Affected asset:</strong> @{body('Query_Commerce_Evidence')?['tables']?[0]?['rows']?[0]?[3]}</li>\n<li><strong>Correlation ID:</strong> @{body('Query_Commerce_Evidence')?['tables']?[0]?['rows']?[0]?[2]}</li>\n<li><strong>Observed source:</strong> @{replace(replace(replace(string(body('Query_Commerce_Evidence')?['tables']?[0]?['rows']?[0]?[5]), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</li>\n</ul>\n<p><a href=\"@{triggerBody()?['object']?['properties']?['incidentUrl']}\">Open Sentinel incident</a><br><a href=\"https://portal.azure.com/#@${tenant_id}/resource${workspace_id}/overview\">Open the scoped Log Analytics workspace</a></p>\n<h3>Investigation Objective</h3>\n<p>Establish the activity, affected identities and resources, and potential impact. Determine the appropriate classification and response.</p>\n<h3>Investigation Steps</h3>\n<ol><li>Review the Sentinel alert, severity, entities, and timeline.</li><li>Use Log Analytics to correlate the account, requests, outcomes, and activity times.</li><li>Assess control effectiveness, scope, and potential impact.</li><li>Record evidence, recommend any containment, and decide whether to escalate.</li></ol>\n<h3>Definition of Done</h3>\n<p>Document the timeline, evidence links, affected entities, classification, confidence, response recommendations, and escalation or closure justification. Keep the case open when the evidence is inconclusive.</p>",
+                    "type": 1,
+                    "itilcategories_id": 0,
+                    "priority": "@if(equals(triggerBody()?['object']?['properties']?['severity'], 'High'), 4, if(equals(triggerBody()?['object']?['properties']?['severity'], 'Medium'), 3, 2))",
+                    "users_id_recipient": 7
+                  }
+                },
+                "retryPolicy": {
+                  "type": "none"
+                }
+              },
+              "runtimeConfiguration": {
+                "secureData": {
+                  "properties": [
+                    "inputs",
+                    "outputs"
+                  ]
+                }
+              },
+              "runAfter": {}
+            }
+          }
+        },
+        "runAfter": {}
+      }
+    },
+    "else": {},
+    "runAfter": {
+      "Filter_Existing_GLPI_Tickets": [
+        "Succeeded"
+      ]
+    }
+  },
+  "Close_GLPI_Session": {
+    "type": "Http",
+    "inputs": {
+      "method": "DELETE",
+      "uri": "${glpi_api_url}/apirest.php/killSession/",
+      "headers": {
+        "Content-Type": "application/json",
+        "App-Token": "@{body('Get_GLPI_App_Token')?['value']}",
+        "Session-Token": "@{body('Init_GLPI_Session')?['session_token']}"
+      },
+      "retryPolicy": {
+        "type": "exponential",
+        "count": 3,
+        "interval": "PT10S"
+      }
+    },
+    "runtimeConfiguration": {
+      "secureData": {
+        "properties": [
+          "inputs",
+          "outputs"
+        ]
+      }
+    },
+    "runAfter": {
+      "Create_GLPI_Ticket_If_Missing": [
+        "Succeeded",
+        "Failed",
+        "Skipped",
+        "TimedOut"
+      ]
+    }
+  }
+}

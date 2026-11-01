@@ -1,0 +1,7 @@
+let events = ContainerAppConsoleLogs_CL
+| where TimeGenerated > ago(15m)
+| where ContainerAppName_s == "${app_name}"
+| extend payload = parse_json(Log_s)
+| extend SimulationId=tostring(payload.simulation_id), RequestId=tostring(payload.request_id), EventType=tostring(payload.event_type), TargetHash=tostring(payload.email_hash), ActorId=tostring(payload.user_id), ActorRole=tostring(payload.user_role), Path=tostring(payload.path), Status=toint(payload.status_code), ObservedIP=tostring(payload.source_ip), ActivityTime=coalesce(todatetime(payload.timestamp), TimeGenerated)
+| where isnotempty(SimulationId) and isnotempty(RequestId)
+| extend SourceIP=iff(isempty(ObservedIP) or ObservedIP in ("unknown", "::1") or coalesce(ipv4_is_in_any_range(ObservedIP, dynamic(["0.0.0.0/8", "10.0.0.0/8", "100.64.0.0/10", "127.0.0.0/8", "169.254.0.0/16", "172.16.0.0/12", "192.168.0.0/16"])), false), "unknown", ObservedIP);

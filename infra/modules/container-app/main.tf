@@ -7,6 +7,13 @@ resource "azurerm_container_app_environment" "main" {
   log_analytics_workspace_id = var.log_analytics_workspace_id
   zone_redundancy_enabled    = false
   tags                       = var.tags
+
+  workload_profile {
+    name                  = "Consumption"
+    workload_profile_type = "Consumption"
+    minimum_count         = 0
+    maximum_count         = 0
+  }
 }
 
 resource "azurerm_container_app" "main" {
@@ -15,6 +22,7 @@ resource "azurerm_container_app" "main" {
   container_app_environment_id = azurerm_container_app_environment.main.id
   revision_mode                = "Single"
   max_inactive_revisions       = 2
+  workload_profile_name        = "Consumption"
   tags                         = var.tags
 
   identity {
@@ -95,6 +103,11 @@ resource "azurerm_container_app" "main" {
       env {
         name  = "CORS_ORIGINS"
         value = "[]"
+      }
+
+      env {
+        name  = "TRUSTED_PROXY_CIDRS"
+        value = "127.0.0.0/8,::1/128,100.64.0.0/10"
       }
 
       liveness_probe {

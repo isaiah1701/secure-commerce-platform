@@ -150,6 +150,7 @@ module "soar" {
   resource_group_name                  = azurerm_resource_group.main.name
   resource_group_id                    = azurerm_resource_group.main.id
   workspace_id                         = module.monitoring.log_analytics_workspace_id
+  tenant_id                            = data.azurerm_client_config.current.tenant_id
   workspace_customer_id                = module.monitoring.log_analytics_workspace_customer_id
   key_vault_id                         = module.key_vault.key_vault_id
   key_vault_name                       = local.key_vault_name

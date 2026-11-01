@@ -46,7 +46,7 @@ jobs:
 
       - name: Lint backend
         working-directory: backend
-        run: ruff check .
+        run: ruff check . ../soc/validate.py
 
       - name: Test backend
         working-directory: backend
@@ -62,6 +62,9 @@ jobs:
       - name: Install frontend dependencies
         working-directory: frontend
         run: npm ci
+
+      - name: Test bounded SOC scenario configuration
+        run: node --test soc/k6/*.test.mjs
 
       - name: Lint frontend
         working-directory: frontend

@@ -55,5 +55,7 @@ def orders(_: User = Depends(require_admin), db: Session = Depends(get_db)):
 
 
 @router.get("/users", response_model=list[AdminUserOut])
-def users(_: User = Depends(require_admin), db: Session = Depends(get_db)):
-    return list(db.scalars(select(User).order_by(User.created_at.desc())))
+def users(request: Request, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    results = list(db.scalars(select(User).order_by(User.created_at.desc())))
+    security_event(request, "ADMIN_USERS_VIEWED", "Administrator viewed account directory", user_id=admin.id, user_role=admin.role.value)
+    return results

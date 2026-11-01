@@ -2,7 +2,8 @@ environment = "dev"
 location    = "UK South"
 
 # Set a short lowercase suffix if a globally unique ACR or Key Vault name is required.
-resource_suffix = "43ad"
+resource_suffix                = "43adc2"
+deployment_principal_object_id = "6afc9248-684a-44fe-a965-a1c42e20a74d"
 
 enable_glpi         = true
 enable_soc          = true

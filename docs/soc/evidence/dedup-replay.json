@@ -1,0 +1,30 @@
+{
+  "incident_id": "ed98fa83-ca86-4b08-9e33-045101eac088",
+  "incident_number": 64,
+  "ticket_id": 54,
+  "count_before": 1,
+  "ticket_content_sha256_before": "0ffda7324b5ebf1f2ee35ef9a10bd4c080ef08a24a2d503b10308f2fe4b097a3",
+  "notes_sha256_before": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+  "replays": [
+    {
+      "run": "08584081062677414377071310989CU22",
+      "status": "Succeeded",
+      "creation_actions": {
+        "Create_GLPI_BruteForce_Ticket": "Skipped",
+        "Create_GLPI_Ticket": "Skipped"
+      }
+    },
+    {
+      "run": "08584081063019253804205260109CU63",
+      "status": "Succeeded",
+      "creation_actions": {
+        "Create_GLPI_BruteForce_Ticket": "Skipped",
+        "Create_GLPI_Ticket": "Skipped"
+      }
+    }
+  ],
+  "count_after": 1,
+  "ticket_content_sha256_after": "0ffda7324b5ebf1f2ee35ef9a10bd4c080ef08a24a2d503b10308f2fe4b097a3",
+  "notes_sha256_after": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+  "verified": true
+}

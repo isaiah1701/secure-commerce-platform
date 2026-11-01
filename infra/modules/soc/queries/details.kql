@@ -1,0 +1,2 @@
+| extend FirstActivityUtc=tostring(FirstActivityUtc), LastActivityUtc=tostring(LastActivityUtc), SourceIP=iff(array_length(ObservedSources)==1, tostring(ObservedSources[0]), "unknown"), AccountHashes=tostring(AccountHashes), Asset="Commerce API / ${app_name}"
+| extend TimeGenerated=todatetime(FirstActivityUtc)

@@ -8,44 +8,44 @@ ContainerAppConsoleLogs_CL
 | where TimeGenerated > ago(24h)
 | extend payload = parse_json(column_ifexists("Log_s", ""))
 | extend path = tostring(payload.path), event_type=tostring(payload.event_type), status = toint(payload.status_code), source=tostring(payload.source_ip), simulation_id=tostring(payload.simulation_id)
-| where event_type in ("AUTH_LOGIN_FAILURE", "AUTH_ACCOUNT_LOCKED", "HTTP_REQUEST") and (path has "/api/auth/login" or status in (401, 403, 422, 429))
-| summarize Attempts=count(), Statuses=make_set(status), FirstSeen=min(TimeGenerated), LastSeen=max(TimeGenerated), RequestIds=make_set(tostring(payload.request_id), 20) by source, simulation_id
+| where event_type in ("AUTH_LOGIN_FAILURE", "AUTH_ACCOUNT_LOCKED", "RATE_LIMIT_EXCEEDED")
+| summarize Attempts=dcount(tostring(payload.request_id)), Failures=dcountif(tostring(payload.request_id), event_type=="AUTH_LOGIN_FAILURE"), Locks=dcountif(tostring(payload.request_id), event_type=="AUTH_ACCOUNT_LOCKED"), FirstSeen=min(todatetime(payload.timestamp)), LastSeen=max(todatetime(payload.timestamp)), RequestIds=make_set(tostring(payload.request_id), 20) by source, simulation_id
 | order by Attempts desc
 
 // 2. Password spray candidates: many accounts from one source
 ContainerAppConsoleLogs_CL
 | where TimeGenerated > ago(1h)
 | extend payload = parse_json(column_ifexists("Log_s", ""))
-| extend path = tostring(payload.path), account = tostring(payload.email_hash), status = toint(payload.status_code), source=tostring(payload.source_ip), simulation_id=tostring(payload.simulation_id)
-| where path has "/api/auth/login" and status in (400, 401, 422, 429)
-| summarize Accounts=dcount(account), Attempts=count(), FirstSeen=min(TimeGenerated), LastSeen=max(TimeGenerated) by source, simulation_id
-| where Accounts >= 3 and Attempts >= 8
+| extend account=tostring(payload.email_hash), simulation_id=tostring(payload.simulation_id)
+| where tostring(payload.event_type)=="AUTH_LOGIN_FAILURE" and isnotempty(account)
+| summarize Accounts=dcount(account), Attempts=dcount(tostring(payload.request_id)), ObservedSources=make_set(tostring(payload.source_ip)), FirstSeen=min(todatetime(payload.timestamp)), LastSeen=max(todatetime(payload.timestamp)) by simulation_id
+| where Accounts >= 3 and Attempts >= 5
 | order by Attempts desc
 
 // 3. Suspicious successful login after repeated failures
 let failed = ContainerAppConsoleLogs_CL
 | where TimeGenerated > ago(30m)
 | extend payload = parse_json(column_ifexists("Log_s", ""))
-| extend status = toint(payload.status_code), source=tostring(payload.source_ip), simulation_id=tostring(payload.simulation_id)
-| where status in (400, 401, 422, 429)
-| summarize Failures=count(), LastFailure=max(TimeGenerated) by source;
+| extend account=tostring(payload.email_hash), simulation_id=tostring(payload.simulation_id)
+| where tostring(payload.event_type)=="AUTH_LOGIN_FAILURE" and isnotempty(account)
+| summarize Failures=dcount(tostring(payload.request_id)), LastFailure=max(todatetime(payload.timestamp)) by simulation_id, account;
 ContainerAppConsoleLogs_CL
 | where TimeGenerated > ago(15m)
 | extend payload = parse_json(column_ifexists("Log_s", ""))
-| extend status = toint(payload.status_code), source=tostring(payload.source_ip), simulation_id=tostring(payload.simulation_id)
-| where status == 200 and tostring(payload.path) has "/api/auth/login"
-| join kind=inner failed on source
-| where Failures >= 5 and TimeGenerated > LastFailure
-| project TimeGenerated, source, simulation_id, Failures, LastFailure
+| extend account=tostring(payload.email_hash), source=tostring(payload.source_ip), simulation_id=tostring(payload.simulation_id), ActivityTime=todatetime(payload.timestamp)
+| where tostring(payload.event_type)=="AUTH_LOGIN_SUCCESS" and isnotempty(account)
+| join kind=inner failed on simulation_id, account
+| where Failures >= 3 and ActivityTime > LastFailure
+| project ActivityTime, source, simulation_id, account, Failures, LastFailure
 
 // 4. API abuse and enumeration
 ContainerAppConsoleLogs_CL
 | where TimeGenerated > ago(1h)
 | extend payload = parse_json(column_ifexists("Log_s", ""))
 | extend path = tostring(payload.path), status = toint(payload.status_code), source=tostring(payload.source_ip), simulation_id=tostring(payload.simulation_id)
-| where path has "/api/"
-| summarize Requests=count(), DistinctPaths=dcount(path), ErrorResponses=countif(status >= 400), FirstSeen=min(TimeGenerated), LastSeen=max(TimeGenerated) by source, simulation_id
-| where Requests >= 100 or DistinctPaths >= 20
+| where tostring(payload.event_type)=="HTTP_REQUEST" and path startswith "/api/"
+| summarize Requests=dcount(tostring(payload.request_id)), DistinctPaths=dcount(path), ErrorResponses=countif(status >= 400), FirstSeen=min(todatetime(payload.timestamp)), LastSeen=max(todatetime(payload.timestamp)) by source, simulation_id
+| where Requests >= 50
 | order by Requests desc
 
 // 5. Privilege boundary probing
@@ -53,9 +53,9 @@ ContainerAppConsoleLogs_CL
 | where TimeGenerated > ago(1h)
 | extend payload = parse_json(column_ifexists("Log_s", ""))
 | extend path = tostring(payload.path), status = toint(payload.status_code), source=tostring(payload.source_ip), simulation_id=tostring(payload.simulation_id)
-| where status == 403 or path has_any ("/admin", "/internal", "/debug")
-| summarize Probes=count(), Paths=make_set(path, 20), FirstSeen=min(TimeGenerated), LastSeen=max(TimeGenerated) by source, simulation_id
-| where Probes >= 5
+| where tostring(payload.event_type)=="AUTH_FORBIDDEN"
+| summarize Probes=dcount(tostring(payload.request_id)), Paths=make_set(path, 20), ActorIds=make_set(tostring(payload.user_id)), FirstSeen=min(todatetime(payload.timestamp)), LastSeen=max(todatetime(payload.timestamp)) by source, simulation_id
+| where Probes >= 3
 
 // 6. Cloud administrative changes
 AzureActivity

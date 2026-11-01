@@ -10,3 +10,4 @@ PyJWT==2.15.1
 prometheus-client==0.21.1
 python-multipart==0.0.32
 azure-monitor-opentelemetry==1.8.10
+azure-identity==1.27.0

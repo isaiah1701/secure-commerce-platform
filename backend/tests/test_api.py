@@ -1,5 +1,8 @@
+import logging
+
 from app.db.session import SessionLocal
 from app.models import Product, User
+from app.observability.logging import anonymize_email
 
 
 def register(client, email="bob@example.com"):
@@ -46,6 +49,63 @@ def test_account_locks_after_five_failures(client):
         user = db.query(User).filter(User.email == "bob@example.com").one()
         assert user.failed_login_attempts == 5
         assert user.locked_until is not None
+
+
+def test_authentication_events_keep_hashed_identity_and_scenario_correlation(client, caplog):
+    email = "soc-bruteforce-contract@example.com"
+    register(client, email)
+    expected_hash = anonymize_email(email)
+
+    with caplog.at_level(logging.WARNING, logger="secure_commerce"):
+        for attempt in range(5):
+            response = client.post(
+                "/api/auth/login",
+                json={"email": email, "password": f"WrongPass!{attempt}"},
+                headers={
+                    "X-SOC-Scenario-ID": "soc-auth-contract",
+                    "X-Request-ID": f"soc-auth-contract-{attempt}",
+                },
+            )
+            assert response.status_code == 401
+
+    auth_events = [
+        record for record in caplog.records
+        if getattr(record, "event_type", None) in {"AUTH_LOGIN_FAILURE", "AUTH_ACCOUNT_LOCKED"}
+    ]
+    failures = [record for record in auth_events if record.event_type == "AUTH_LOGIN_FAILURE"]
+    lockouts = [record for record in auth_events if record.event_type == "AUTH_ACCOUNT_LOCKED"]
+
+    assert len(failures) == 5
+    assert len(lockouts) == 1
+    assert all(record.email_hash == expected_hash for record in auth_events)
+    assert all(record.simulation_id == "soc-auth-contract" for record in auth_events)
+    assert {record.request_id for record in auth_events} == {f"soc-auth-contract-{attempt}" for attempt in range(5)}
+    assert all(email not in record.getMessage() for record in auth_events)
+
+
+def test_untrusted_forwarded_headers_do_not_establish_source_attribution(client, caplog):
+    email = "soc-forwarded-ip@example.com"
+    register(client, email)
+    with caplog.at_level(logging.WARNING, logger="secure_commerce"):
+        response = client.post(
+            "/api/auth/login",
+            json={"email": email, "password": "WrongPass!1"},
+            headers={"X-Forwarded-For": "198.51.100.77, 203.0.113.9"},
+        )
+    assert response.status_code == 401
+    event = next(record for record in caplog.records if getattr(record, "event_type", None) == "AUTH_LOGIN_FAILURE")
+    assert event.source_ip == "unknown"
+
+
+def test_admin_directory_event_requires_actual_admin_role(client, admin, customer, caplog):
+    with caplog.at_level(logging.INFO, logger="secure_commerce"):
+        denied = client.get("/api/admin/users", headers=customer["headers"])
+        allowed = client.get("/api/admin/users", headers={**admin["headers"], "X-SOC-Scenario-ID": "soc-admin-directory", "X-Request-ID": "soc-admin-directory-1"})
+    assert denied.status_code == 403 and allowed.status_code == 200
+    events = [record for record in caplog.records if getattr(record, "event_type", "") == "ADMIN_USERS_VIEWED"]
+    assert len(events) == 1
+    assert events[0].user_role == "admin" and events[0].simulation_id == "soc-admin-directory"
+    assert events[0].request_id == "soc-admin-directory-1" and events[0].path == "/api/admin/users"
 
 
 def test_unauthenticated_and_invalid_jwt_rejected(client):

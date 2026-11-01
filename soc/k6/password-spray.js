@@ -1,14 +1,15 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
+import { sprayConfiguration } from './password-spray-config.mjs';
+import { warmup } from './lab-runtime.js';
 
 // Bounded lab traffic only. Use synthetic accounts on the owned commerce site.
-const base = (__ENV.BASE_URL || 'https://shop.platf0rm.site').replace(/\/$/, '');
 const scenarioId = __ENV.SCENARIO_ID || `soc-password-spray-${Date.now()}`;
-const password = __ENV.TEST_PASSWORD || 'disabled';
-const users = (__ENV.TEST_USERS || 'soc-spray-1@platf0rm.site,soc-spray-2@platf0rm.site,soc-spray-3@platf0rm.site,soc-spray-4@platf0rm.site,soc-spray-5@platf0rm.site').split(',');
 const killSwitch = (__ENV.KILL_SWITCH || 'false').toLowerCase() === 'true';
+const { base, users, password } = sprayConfiguration(__ENV);
 
 export const options = {
+  setupTimeout: '130s',
   scenarios: {
     bounded_password_spray: {
       executor: 'per-vu-iterations',
@@ -17,8 +18,14 @@ export const options = {
       maxDuration: '30s',
     },
   },
-  thresholds: { checks: ['rate>0.9'] },
+  thresholds: { checks: ['rate==1'], http_req_failed: ['rate==0'] },
 };
+
+http.setResponseCallback(http.expectedStatuses(401));
+
+export function setup() {
+  warmup(base, scenarioId, killSwitch);
+}
 
 function headers() {
   return {
@@ -31,13 +38,13 @@ function headers() {
 export default function () {
   if (killSwitch) return;
 
-  for (const email of users.slice(0, 5)) {
+  for (const email of users) {
     const response = http.post(
       `${base}/api/auth/login`,
       JSON.stringify({ email: email.trim(), password }),
       { headers: headers(), timeout: '10s' },
     );
-    check(response, { 'bounded authentication response': (r) => [401, 429].includes(r.status) });
+    check(response, { 'failed authentication observed': (response) => response.status === 401 });
+    sleep(2);
   }
-  sleep(1);
 }
