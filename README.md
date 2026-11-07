@@ -120,12 +120,25 @@ The Azure path keeps the application a modular monolith. The production [Dockerf
 
 ### Architecture
 
-![Secure Commerce Azure SOC Platform — current cloud infrastructure](https://github.com/user-attachments/assets/cd6dd7ad-43c8-4d8f-b096-968e50e1a901)
+```mermaid
+flowchart LR
+    K6[Bounded K6 scenarios] --> APP[Commerce Container App]
+    APP --> PG[(Private PostgreSQL)]
+    APP --> LAW[Log Analytics workspace]
+    LAW --> SENT[Sentinel scheduled detections]
+    SENT --> AUTO[Incident automation]
+    AUTO --> PLAY[Logic App playbook]
+    PLAY --> GLPI[GLPI ticketing]
+    GLPI --> MYSQL[(Private MySQL)]
+    GLPI --> FILES[(Persistent ticket files)]
+    GLPI --> GLPILAW[GLPI Log Analytics workspace]
+```
 
-The diagram is a snapshot of the deployed commerce and GLPI applications, private databases,
-centralized monitoring, Sentinel detections, and the SOC training workflow. Its Logic App status
-predates the deployed Sentinel-to-GLPI automation; see the [SOC acceptance matrix](docs/soc/acceptance-matrix.md)
-for current status.
+The SOC stack is active: Sentinel detections create incidents, and the incident automation
+invokes the Logic App to enrich and create GLPI tickets. See the [SOC architecture](docs/soc/architecture.md),
+[acceptance matrix](docs/soc/acceptance-matrix.md), and [SOC runbooks](docs/soc/README.md).
+The [phishing email infrastructure plan](docs/email-phish.md) describes an optional ACS email
+simulation; that sender has not been deployed.
 
 The VNet uses `10.20.0.0/16`, with `10.20.0.0/23` delegated to Container Apps and `10.20.4.0/24` delegated exclusively to PostgreSQL. PostgreSQL public access is disabled and its hostname resolves through a VNet-linked private DNS zone.
 
@@ -138,8 +151,12 @@ The VNet uses `10.20.0.0/16`, with `10.20.0.0/23` delegated to Container Apps an
 | `monitoring` | 30-day Log Analytics workspace and workspace-based Application Insights |
 | `key-vault` | RBAC-enabled vault, application secrets, app secret-read role, and audit diagnostics |
 | `postgres` | Private PostgreSQL Flexible Server, `commerce` database, TLS enforcement, and diagnostics |
+| `mysql` | Private MySQL Flexible Server for GLPI and diagnostics |
 | `container-app` | Managed environment, external HTTPS ingress, probes, scaling, ACR identity, and Key Vault references |
 | `dns` | Optional Azure public DNS zone, CNAME/TXT verification, and managed custom-domain binding |
+| `glpi` | GLPI Container App and persistent file storage |
+| `soc` | Sentinel scheduled detections, KQL templates, and workspace diagnostics |
+| `soar` | Sentinel incident automation and the Logic App GLPI integration |
 
 The resource group remains in the root module. Module inputs and outputs express every cross-module dependency; modules do not discover each other by naming conventions.
 
@@ -271,7 +288,7 @@ Keep the `shop` record as a direct CNAME to the generated Container Apps hostnam
 
 The application receives a TLS-required SQLAlchemy URL through a versionless Key Vault reference. The Container Apps environment is VNet-integrated and can resolve/reach the private server. Alembic migrations run when the production container starts; production does not seed the local demo accounts.
 
-Container Apps console/system logs flow to Log Analytics. ACR, Key Vault, and PostgreSQL diagnostic settings target the same workspace. The backend activates the Azure Monitor OpenTelemetry distribution only when `APPLICATIONINSIGHTS_CONNECTION_STRING` is present, so local operation is unchanged. Sentinel is intentionally not enabled in this phase, but the workspace is ready for it.
+Commerce Container Apps console/system logs, ACR, Key Vault, and PostgreSQL diagnostics flow to the SOC Log Analytics workspace. GLPI runs in its own Container Apps environment with a separate Log Analytics workspace for its MySQL diagnostics. Sentinel is enabled on the SOC workspace with scheduled detections for the bounded scenarios; its incident automation invokes the Logic App and creates GLPI tickets. The backend activates the Azure Monitor OpenTelemetry distribution only when `APPLICATIONINSIGHTS_CONNECTION_STRING` is present, so local operation is unchanged.
 
 ### Security decisions
 
@@ -287,7 +304,7 @@ Container Apps console/system logs flow to Log Analytics. ACR, Key Vault, and Po
 
 ### Cost considerations
 
-PostgreSQL Flexible Server is the main predictable cost because it does not scale to zero. The configuration uses the small burstable `B_Standard_B1ms` SKU, 32 GiB storage, seven-day local backups, and no HA, replicas, or geo-redundant backup. Container Apps can scale to zero and incurs usage-based compute when active. Basic ACR has a small fixed registry/storage charge. Log Analytics and Application Insights charge primarily by ingestion and retention; verbose attack simulations will increase this. Key Vault charges per operation, while Azure DNS charges per hosted zone and query. Check the Azure Pricing Calculator for current UK South prices before applying because rates change.
+PostgreSQL Flexible Server is a predictable cost because it does not scale to zero. GLPI also uses a managed MySQL server and persistent file storage. The configuration uses small burstable database tiers, seven-day backups, and no HA, replicas, or geo-redundant backup. Container Apps can scale to zero and incurs usage-based compute when active. Basic ACR has a small fixed registry/storage charge. Log Analytics and Application Insights charge primarily by ingestion and retention; verbose attack simulations will increase this. Key Vault charges per operation, while Azure DNS charges per hosted zone and query. Check the Azure Pricing Calculator for current UK South prices before applying because rates change. The optional ACS email design in [docs/email-phish.md](docs/email-phish.md) has separate usage charges and is not included in the deployed stack.
 
 ### Destroy
 
@@ -304,9 +321,13 @@ The remote-state storage is deliberately separate and is not destroyed with the 
 backend/    FastAPI application, Alembic migration, seed, and tests
 frontend/   React + TypeScript + Vite storefront and Nginx runtime
 infra/      Modular Azure Terraform and remote-state bootstrap
+soc/        Bounded K6 scenarios, validation, and KQL hunting queries
+docs/soc/   SOC architecture, runbooks, scenario progress, and evidence
+docs/email-phish.md  Optional cloud email simulation plan
 .github/    Terraform CI and application deployment workflows
 evidence/   Reproducible local acceptance evidence grouped by ticket
-Dockerfile  Production monolith image for Azure Container Apps
+Dockerfile  Production commerce image for Azure Container Apps
+Dockerfile.glpi  GLPI image customization
 docker-compose.yml
 .env.example
 ```
