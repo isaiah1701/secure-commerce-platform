@@ -19,6 +19,10 @@ stacks for touch use. Ticket controls keep a 44 px target and 16 px input text,
 and keyboard focus remains visible. These rules apply to both Aurora and SOC
 Ops without changing ticket data or user preferences.
 
-Changes to `Dockerfile.glpi` or `glpi-theme/` build and deploy only the GLPI
-container app through `.github/workflows/glpi-theme.yml`; the commerce app and
-infrastructure deployment are not part of this workflow.
+The SOC Analyst Platform plugin adds a separate dark-first analyst workspace
+alongside GLPI's standard interface. See docs/glpi-soc-workspace.md for its
+data sources, access checks, analyst views, build, and deployment behavior.
+
+Changes to `Dockerfile.glpi`, `glpi-theme/`, or `glpi-plugin/socops/` build and
+deploy only the GLPI container app through `.github/workflows/glpi-theme.yml`;
+the commerce app and infrastructure deployment are not part of this workflow.

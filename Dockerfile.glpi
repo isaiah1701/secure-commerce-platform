@@ -1,4 +1,11 @@
-FROM glpi/glpi:11.0.12
+FROM node:22-alpine AS socops-ui
+WORKDIR /src/glpi-plugin/socops/ui
+COPY glpi-plugin/socops/ui/package.json glpi-plugin/socops/ui/package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY glpi-plugin/socops/ui/ ./
+RUN npm run build
+
+FROM glpi/glpi:11.0.12@sha256:3f5ee7453145e0b4ab6db7541fafbce7022ec1f3d93b22a36c220db2ef91dc78
 
 # Azure Container Apps does not preserve the official image's cap_net_bind_service
 # capability for the non-root www-data process. Run Apache on an unprivileged
@@ -7,9 +14,29 @@ USER root
 RUN sed -i 's/^Listen 80$/Listen 8080/' /etc/apache2/ports.conf \
     && sed -i 's#<VirtualHost \*:80>#<VirtualHost *:8080>#' /etc/apache2/sites-available/000-default.conf \
     && sed -i 's#<VirtualHost \*:80>#<VirtualHost *:8080>#' /etc/apache2/sites-enabled/000-default.conf
+COPY glpi-azure-files-chmod.patch /tmp/azure-files-chmod.patch
+RUN cd /var/www/glpi \
+    && patch -p1 < /tmp/azure-files-chmod.patch \
+    && rm /tmp/azure-files-chmod.patch
 COPY glpi-theme/soc_ops.scss /opt/glpi-theme/soc_ops.scss
 RUN chmod 0444 /opt/glpi-theme/soc_ops.scss
+COPY glpi-plugin/socops/setup.php /var/www/glpi/plugins/socops/setup.php
+COPY glpi-plugin/socops/hook.php /var/www/glpi/plugins/socops/hook.php
+COPY glpi-plugin/socops/src/ /var/www/glpi/plugins/socops/src/
+COPY glpi-plugin/socops/front/ /var/www/glpi/plugins/socops/front/
+COPY --from=socops-ui /src/glpi-plugin/socops/public/ /var/www/glpi/plugins/socops/public/
+RUN php -l /var/www/glpi/plugins/socops/setup.php \
+    && php -l /var/www/glpi/plugins/socops/hook.php \
+    && php -l /var/www/glpi/plugins/socops/src/Menu.php \
+    && php -l /var/www/glpi/plugins/socops/src/TicketRepository.php \
+    && php -l /var/www/glpi/plugins/socops/front/dashboard.php \
+    && php -l /var/www/glpi/plugins/socops/front/api.php
+COPY glpi-entrypoint.sh /opt/glpi/azure-entrypoint.sh
+RUN chmod 0555 /opt/glpi/azure-entrypoint.sh
+ENTRYPOINT ["/opt/glpi/azure-entrypoint.sh"]
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
 
 ENV GLPI_THEMES_DIR=/opt/glpi-theme
+ENV GLPI_SOCOPS_PLUGIN_BOOTSTRAP=true
 
 USER www-data

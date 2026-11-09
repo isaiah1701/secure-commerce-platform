@@ -1,4 +1,4 @@
-name: Build and deploy GLPI theme
+name: Build and deploy GLPI SOC workspace
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
     paths:
       - "Dockerfile.glpi"
       - "glpi-theme/**"
+      - "glpi-plugin/socops/**"
       - ".github/workflows/glpi-theme.yml"
   workflow_dispatch:
 
@@ -19,7 +20,7 @@ concurrency:
 
 jobs:
   deploy:
-    name: Build and deploy GLPI theme only
+    name: Build and deploy GLPI SOC workspace
     runs-on: ubuntu-latest
     environment: dev
     env:
@@ -29,6 +30,29 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v7
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: glpi-plugin/socops/ui/package-lock.json
+
+      - name: Install SOC workspace dependencies
+        working-directory: glpi-plugin/socops/ui
+        run: npm ci --no-audit --no-fund
+
+      - name: Test SOC workspace helpers
+        working-directory: glpi-plugin/socops/ui
+        run: npm test
+
+      - name: Lint SOC workspace
+        working-directory: glpi-plugin/socops/ui
+        run: npm run lint
+
+      - name: Build SOC workspace
+        working-directory: glpi-plugin/socops/ui
+        run: npm run build
+
       - name: Authenticate to Azure with OIDC
         uses: azure/login@v3
         with:
@@ -36,22 +60,42 @@ jobs:
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Build immutable GLPI image in ACR
-        run: >-
-          az acr build
-          --registry "${{ vars.ACR_NAME }}"
-          --image "glpi:${{ github.sha }}"
-          --file Dockerfile.glpi
-          .
+      - name: Build and publish immutable GLPI image
+        run: |
+          current_image=$(az containerapp show \
+            --name "$GLPI_CONTAINER_APP_NAME" \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --query "properties.template.containers[0].image" \
+            --output tsv)
+          acr_login_server="${current_image%%/*}"
+          acr_name="${acr_login_server%%.*}"
+          if [[ -z "$acr_name" || -z "$acr_login_server" ]]; then
+            echo "Could not find the registry used by the current GLPI image"
+            exit 1
+          fi
+          az acr login --name "$acr_name"
+          docker build --pull --file Dockerfile.glpi \
+            --tag "${acr_login_server}/glpi:${GITHUB_SHA}" .
+          docker push "${acr_login_server}/glpi:${GITHUB_SHA}"
 
       - name: Deploy GLPI image only
         run: |
-          revision_suffix="theme-${GITHUB_SHA::12}"
+          revision_suffix="socops-${GITHUB_SHA::12}"
           revision_name="${GLPI_CONTAINER_APP_NAME}--${revision_suffix}"
+          current_image=$(az containerapp show \
+            --name "$GLPI_CONTAINER_APP_NAME" \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --query "properties.template.containers[0].image" \
+            --output tsv)
+          acr_login_server="${current_image%%/*}"
+          if [[ -z "$acr_login_server" ]]; then
+            echo "Could not find the registry used by the current GLPI image"
+            exit 1
+          fi
           az containerapp update \
             --name "$GLPI_CONTAINER_APP_NAME" \
             --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
-            --image "${{ vars.ACR_LOGIN_SERVER }}/glpi:${{ github.sha }}" \
+            --image "${acr_login_server}/glpi:${GITHUB_SHA}" \
             --revision-suffix "$revision_suffix"
 
           for attempt in {1..30}; do
