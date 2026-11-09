@@ -1,0 +1,12 @@
+--- a/src/Glpi/OAuth/Server.php
++++ b/src/Glpi/OAuth/Server.php
+@@ -323,5 +323,8 @@
+             chmod(self::PRIVATE_KEY_PATH, 0o660);
+             chmod(self::PUBLIC_KEY_PATH, 0o660);
+         } catch (FilesystemException $e) {
+-            throw new RuntimeException('Unable to set permissions on the generated keys', $e->getCode(), $e);
++            if (getenv('GLPI_AZURE_FILES_ALLOW_CHMOD_FAILURE') !== 'true') {
++                throw new RuntimeException('Unable to set permissions on the generated keys', $e->getCode(), $e);
++            }
++            error_log('GLPI OAuth key permissions are enforced by the private Azure Files storage boundary.');
+         }

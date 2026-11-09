@@ -178,7 +178,7 @@
         "audience": "https://api.loganalytics.io"
       },
       "body": {
-        "query": "let raw_details=parse_json(base64_decode_tostring('@{base64(string(coalesce(triggerBody()?['object']?['properties']?['alerts']?[0]?['properties']?['additionalData']?['Custom Details'], '{}')))}'));\nlet details=iff(gettype(raw_details)=='string', parse_json(tostring(raw_details)), raw_details);\nlet scenario_id=iff(gettype(details.ScenarioId)=='array', tostring(details.ScenarioId[0]), tostring(details.ScenarioId));\nlet incident_start=datetime('@{coalesce(triggerBody()?['object']?['properties']?['firstActivityTimeUtc'], triggerBody()?['object']?['properties']?['createdTimeUtc'])}');\nlet incident_end=datetime('@{coalesce(triggerBody()?['object']?['properties']?['lastActivityTimeUtc'], triggerBody()?['object']?['properties']?['createdTimeUtc'])}');\nContainerAppConsoleLogs_CL\n| where TimeGenerated between (incident_start - 15m .. incident_end + 15m)\n| where ContainerAppName_s == \"${app_name}\"\n| extend payload=parse_json(Log_s)\n| where isnotempty(scenario_id) and tostring(payload.simulation_id)==scenario_id\n| extend ObservedIP=tostring(payload.source_ip)\n| extend SourceIP=iff(isempty(ObservedIP) or ObservedIP in (\"unknown\", \"::1\") or coalesce(ipv4_is_in_any_range(ObservedIP, dynamic([\"0.0.0.0/8\", \"10.0.0.0/8\", \"100.64.0.0/10\", \"127.0.0.0/8\", \"169.254.0.0/16\", \"172.16.0.0/12\", \"192.168.0.0/16\"])), false), \"unknown\", ObservedIP)\n| extend ActivityTime=coalesce(todatetime(payload.timestamp), TimeGenerated)\n| summarize FirstActivityUtc=min(ActivityTime), LastActivityUtc=max(ActivityTime), MatchingEvents=count(), ObservedSources=make_set_if(SourceIP, SourceIP!=\"unknown\", 10)\n| project FirstActivityUtc=iff(MatchingEvents>0,tostring(FirstActivityUtc),\"Unavailable\"), LastActivityUtc=iff(MatchingEvents>0,tostring(LastActivityUtc),\"Unavailable\"), ScenarioId=iff(isnotempty(scenario_id),scenario_id,\"Unavailable\"), Asset=iff(MatchingEvents>0,\"Commerce API / ${app_name}\",\"See Sentinel entities\"), MatchingEvents, SourceIP=iff(array_length(ObservedSources)==1,tostring(ObservedSources[0]),iff(array_length(ObservedSources)>1,\"multiple (review Log Analytics)\",\"unknown\"))"
+        "query": "let raw_details=parse_json(base64_decode_tostring('@{base64(string(coalesce(triggerBody()?['object']?['properties']?['alerts']?[0]?['properties']?['additionalData']?['Custom Details'], '{}')))}'));\nlet details=iff(gettype(raw_details)=='string', parse_json(tostring(raw_details)), raw_details);\nlet scenario_id=iff(gettype(details.ScenarioId)=='array', tostring(details.ScenarioId[0]), tostring(details.ScenarioId));\nlet incident_start=datetime('@{coalesce(triggerBody()?['object']?['properties']?['firstActivityTimeUtc'], triggerBody()?['object']?['properties']?['createdTimeUtc'])}');\nlet incident_end=datetime('@{coalesce(triggerBody()?['object']?['properties']?['lastActivityTimeUtc'], triggerBody()?['object']?['properties']?['createdTimeUtc'])}');\nContainerAppConsoleLogs_CL\n| where TimeGenerated between (incident_start - 15m .. incident_end + 15m)\n| where ContainerAppName_s == \"${app_name}\"\n| extend payload=parse_json(Log_s)\n| where isnotempty(scenario_id) and tostring(payload.simulation_id)==scenario_id\n| extend ObservedIP=tostring(payload.source_ip)\n| extend SourceIP=iff(isempty(ObservedIP) or ObservedIP in (\"unknown\", \"::1\") or coalesce(ipv4_is_in_any_range(ObservedIP, dynamic([\"0.0.0.0/8\", \"10.0.0.0/8\", \"100.64.0.0/10\", \"127.0.0.0/8\", \"169.254.0.0/16\", \"172.16.0.0/12\", \"192.168.0.0/16\"])), false), \"unknown\", ObservedIP)\n| extend ActivityTime=coalesce(todatetime(payload.timestamp), TimeGenerated), EventType=tostring(payload.event_type), RequestId=tostring(payload.request_id), TargetHash=tostring(payload.email_hash)\n| summarize FirstActivityUtc=min(ActivityTime), LastActivityUtc=max(ActivityTime), MatchingEvents=count(), FailedRequests=dcountif(RequestId, EventType==\"AUTH_LOGIN_FAILURE\" and isnotempty(RequestId)), DistinctTargets=dcountif(TargetHash, EventType==\"AUTH_LOGIN_FAILURE\" and isnotempty(TargetHash)), SuccessfulLogins=dcountif(RequestId, EventType==\"AUTH_LOGIN_SUCCESS\" and isnotempty(RequestId)), AccountLockouts=dcountif(RequestId, EventType==\"AUTH_ACCOUNT_LOCKED\" and isnotempty(RequestId)), ObservedHashes=make_set_if(TargetHash, EventType==\"AUTH_LOGIN_FAILURE\" and isnotempty(TargetHash), 10), ObservedSources=make_set_if(SourceIP, SourceIP!=\"unknown\", 10)\n| project FirstActivityUtc=iff(MatchingEvents>0,tostring(FirstActivityUtc),\"Unavailable\"), LastActivityUtc=iff(MatchingEvents>0,tostring(LastActivityUtc),\"Unavailable\"), ScenarioId=iff(isnotempty(scenario_id),scenario_id,\"Unavailable\"), Asset=iff(MatchingEvents>0,\"Commerce API / ${app_name}\",\"See Sentinel entities\"), MatchingEvents, SourceIP=iff(array_length(ObservedSources)==1,tostring(ObservedSources[0]),iff(array_length(ObservedSources)>1,\"multiple (review Log Analytics)\",\"unknown\")), FailedRequests, DistinctTargets, SuccessfulLogins, AccountLockouts, TargetAccountHashes=strcat_array(ObservedHashes, \", \")"
       },
       "retryPolicy": {
         "type": "exponential",
@@ -245,14 +245,34 @@
           "or": [
             {
               "and": [
-                {"equals": ["@body('Search_Existing_GLPI_Ticket')?['totalcount']", 0]},
-                {"equals": ["@length(coalesce(body('Search_Existing_GLPI_Ticket')?['data'], json('[]')))", 0]}
+                {
+                  "equals": [
+                    "@body('Search_Existing_GLPI_Ticket')?['totalcount']",
+                    0
+                  ]
+                },
+                {
+                  "equals": [
+                    "@length(coalesce(body('Search_Existing_GLPI_Ticket')?['data'], json('[]')))",
+                    0
+                  ]
+                }
               ]
             },
             {
               "and": [
-                {"greater": ["@body('Search_Existing_GLPI_Ticket')?['totalcount']", 0]},
-                {"greater": ["@length(coalesce(body('Search_Existing_GLPI_Ticket')?['data'], json('[]')))", 0]}
+                {
+                  "greater": [
+                    "@body('Search_Existing_GLPI_Ticket')?['totalcount']",
+                    0
+                  ]
+                },
+                {
+                  "greater": [
+                    "@length(coalesce(body('Search_Existing_GLPI_Ticket')?['data'], json('[]')))",
+                    0
+                  ]
+                }
               ]
             }
           ]
@@ -271,9 +291,20 @@
               "App-Token": "@{body('Get_GLPI_App_Token')?['value']}",
               "Session-Token": "@{body('Init_GLPI_Session')?['session_token']}"
             },
-            "retryPolicy": {"type": "exponential", "count": 3, "interval": "PT10S"}
+            "retryPolicy": {
+              "type": "exponential",
+              "count": 3,
+              "interval": "PT10S"
+            }
           },
-          "runtimeConfiguration": {"secureData": {"properties": ["inputs", "outputs"]}},
+          "runtimeConfiguration": {
+            "secureData": {
+              "properties": [
+                "inputs",
+                "outputs"
+              ]
+            }
+          },
           "runAfter": {}
         },
         "Reject_Invalid_Search": {
@@ -285,7 +316,14 @@
               "message": "GLPI did not return a valid ticket search result"
             }
           },
-          "runAfter": {"Close_Invalid_Search_Session": ["Succeeded", "Failed", "TimedOut", "Skipped"]}
+          "runAfter": {
+            "Close_Invalid_Search_Session": [
+              "Succeeded",
+              "Failed",
+              "TimedOut",
+              "Skipped"
+            ]
+          }
         }
       }
     },
@@ -319,9 +357,19 @@
       "Route_GLPI_Ticket_By_Alert_Type": {
         "type": "If",
         "expression": {
-          "equals": [
-            "@toLower(string(triggerBody()?['object']?['properties']?['title']))",
-            "soc - repeated failed authentication"
+          "or": [
+            {
+              "equals": [
+                "@toLower(string(triggerBody()?['object']?['properties']?['title']))",
+                "soc - repeated failed authentication"
+              ]
+            },
+            {
+              "startsWith": [
+                "@toLower(string(triggerBody()?['object']?['properties']?['title']))",
+                "soc - password spray"
+              ]
+            }
           ]
         },
         "actions": {
@@ -337,12 +385,11 @@
               },
               "body": {
                 "input": {
-                  "name": "Potential Brute-Force Attack – Commerce Authentication — Sentinel incident @{string(triggerBody()?['object']?['properties']?['incidentNumber'])} [@{coalesce(triggerBody()?['object']?['name'], last(split(coalesce(triggerBody()?['object']?['id'], ''), '/')))}]",
-                  "content": "<h2>SOC Investigation Case</h2>\n<h3>Incident Summary</h3>\n<p>Microsoft Sentinel detected activity requiring review: <strong>@{replace(replace(replace(string(triggerBody()?['object']?['properties']?['title']), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</strong>.</p>\n<ul>\n<li><strong>Sentinel incident:</strong> @{string(triggerBody()?['object']?['properties']?['incidentNumber'])} — @{coalesce(triggerBody()?['object']?['name'], last(split(coalesce(triggerBody()?['object']?['id'], ''), '/')))}</li>\n<li><strong>Severity:</strong> @{triggerBody()?['object']?['properties']?['severity']}</li>\n<li><strong>Detection window (UTC):</strong> @{triggerBody()?['object']?['properties']?['firstActivityTimeUtc']} to @{triggerBody()?['object']?['properties']?['lastActivityTimeUtc']}</li>\n<li><strong>Observed activity (UTC):</strong> @{body('Query_Commerce_Evidence')?['tables']?[0]?['rows']?[0]?[0]} to @{body('Query_Commerce_Evidence')?['tables']?[0]?['rows']?[0]?[1]}</li>\n<li><strong>Affected asset:</strong> @{body('Query_Commerce_Evidence')?['tables']?[0]?['rows']?[0]?[3]}</li>\n<li><strong>Correlation ID:</strong> @{body('Query_Commerce_Evidence')?['tables']?[0]?['rows']?[0]?[2]}</li>\n<li><strong>Observed source:</strong> @{replace(replace(replace(string(body('Query_Commerce_Evidence')?['tables']?[0]?['rows']?[0]?[5]), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</li>\n</ul>\n<p><a href=\"@{triggerBody()?['object']?['properties']?['incidentUrl']}\">Open Sentinel incident</a><br><a href=\"https://portal.azure.com/#@${tenant_id}/resource${workspace_id}/overview\">Open the scoped Log Analytics workspace</a></p>\n<h3>Investigation Objective</h3>\n<p>Establish the activity, affected identities and resources, and potential impact. Determine the appropriate classification and response.</p>\n<h3>Investigation Steps</h3>\n<ol><li>Review the Sentinel alert, severity, entities, and timeline.</li><li>Use Log Analytics to correlate the account, requests, outcomes, and activity times.</li><li>Assess control effectiveness, scope, and potential impact.</li><li>Record evidence, recommend any containment, and decide whether to escalate.</li></ol>\n<h3>Definition of Done</h3>\n<p>Document the timeline, evidence links, affected entities, classification, confidence, response recommendations, and escalation or closure justification. Keep the case open when the evidence is inconclusive.</p>",
+                  "name": "@{concat(if(startsWith(toLower(string(triggerBody()?['object']?['properties']?['title'])), 'soc - password spray'), 'Suspected password spray against Commerce authentication', 'Repeated failed authentication against Commerce'), ' — Sentinel incident ', string(triggerBody()?['object']?['properties']?['incidentNumber']), ' [', coalesce(triggerBody()?['object']?['name'], last(split(coalesce(triggerBody()?['object']?['id'], ''), '/'))), ']')}",
+                  "content": "<h2>Authentication investigation</h2>\n<h3>Incident Summary</h3>\n<p>Microsoft Sentinel detected <strong>@{replace(replace(replace(string(triggerBody()?['object']?['properties']?['title']), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</strong>. A pattern spanning multiple account identifiers is consistent with password spraying (MITRE ATT&amp;CK T1110.003). The alert records failed authentication attempts; it does not by itself establish successful access or account compromise.</p>\n<ul>\n<li><strong>Sentinel incident:</strong> @{string(triggerBody()?['object']?['properties']?['incidentNumber'])} — @{coalesce(triggerBody()?['object']?['name'], last(split(coalesce(triggerBody()?['object']?['id'], ''), '/')))}</li>\n<li><strong>Severity:</strong> @{triggerBody()?['object']?['properties']?['severity']}</li>\n<li><strong>Detection rule:</strong> @{triggerBody()?['object']?['properties']?['title']}</li>\n<li><strong>Detection window (UTC):</strong> @{triggerBody()?['object']?['properties']?['firstActivityTimeUtc']} to @{triggerBody()?['object']?['properties']?['lastActivityTimeUtc']}</li>\n<li><strong>Observed activity in the application (UTC):</strong> @{body('Query_Commerce_Evidence')?['tables']?[0]?['rows']?[0]?[0]} to @{body('Query_Commerce_Evidence')?['tables']?[0]?['rows']?[0]?[1]}</li>\n<li><strong>Affected asset:</strong> @{body('Query_Commerce_Evidence')?['tables']?[0]?['rows']?[0]?[3]}</li>\n<li><strong>Distinct failed authentication requests:</strong> @{body('Query_Commerce_Evidence')?['tables']?[0]?['rows']?[0]?[6]}</li>\n<li><strong>Distinct targeted account identifiers:</strong> @{body('Query_Commerce_Evidence')?['tables']?[0]?['rows']?[0]?[7]}</li>\n<li><strong>Successful authentication events in this correlated activity:</strong> @{body('Query_Commerce_Evidence')?['tables']?[0]?['rows']?[0]?[8]}</li>\n<li><strong>Account lockout events in this correlated activity:</strong> @{body('Query_Commerce_Evidence')?['tables']?[0]?['rows']?[0]?[9]}</li>\n<li><strong>Target identifiers (anonymized hashes):</strong> @{replace(replace(replace(string(body('Query_Commerce_Evidence')?['tables']?[0]?['rows']?[0]?[10]), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</li>\n<li><strong>Observed source address as recorded by the application:</strong> @{replace(replace(replace(string(body('Query_Commerce_Evidence')?['tables']?[0]?['rows']?[0]?[5]), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')} (attribution not independently verified)</li>\n<li><strong>Correlation ID (scenario):</strong> @{body('Query_Commerce_Evidence')?['tables']?[0]?['rows']?[0]?[2]}</li>\n</ul>\n<p>Credential values are not logged or included. Review account activity beyond this correlated scenario before drawing conclusions.</p>\n<p><a href=\"@{triggerBody()?['object']?['properties']?['incidentUrl']}\">Open Sentinel incident</a><br><a href=\"https://portal.azure.com/#@${tenant_id}/resource${workspace_id}/overview\">Open the Log Analytics workspace</a></p>\n<h3>Investigation Objective</h3>\n<p>Establish whether this activity is authorized, how many accounts were targeted, whether any authentication succeeded, and whether related activity indicates a wider incident.</p>\n<h3>Investigation Steps</h3>\n<ol>\n<li><strong>Validate the alert:</strong> review the Sentinel incident, alert timeline, detection rule, severity, and account or IP entities. Confirm the incident came from the password-spray analytic rule.</li>\n<li><strong>Reconstruct the event:</strong> open the correlated Log Analytics evidence and confirm distinct <code>AUTH_LOGIN_FAILURE</code> request IDs and distinct account hashes. Do not count related <code>HTTP_REQUEST</code> records as extra login attempts.</li>\n<li><strong>Check for access:</strong> search for <code>AUTH_LOGIN_SUCCESS</code> and <code>AUTH_ACCOUNT_LOCKED</code> for the target identifiers around the incident window. A zero count in this scenario is not proof that no access occurred outside it.</li>\n<li><strong>Determine scope:</strong> pivot on the source address and target identifiers across the surrounding period and check related incidents. Treat the source address as observed telemetry, not verified actor attribution.</li>\n<li><strong>Verify authorization:</strong> compare the scenario correlation ID and timestamps with the approved test record. If they match, document authorized testing. If authorization is not confirmed or successful access is found, keep the case active and escalate through the identity-response process.</li>\n<li><strong>Record the decision:</strong> document evidence, scope, confidence, and disposition in this ticket and Sentinel. Do not disable accounts, reset passwords, revoke sessions, or block addresses based on this alert alone.</li>\n</ol>\n<h3>Analyst Findings and Disposition</h3>\n<p><strong>Related activity:</strong> Pending analyst review<br><strong>Authorization check:</strong> Pending<br><strong>Classification and rationale:</strong> Pending analyst review</p>\n<h3>Definition of Done</h3>\n<p>Record the account and source pivots, confirm or reject authorization, document any successful access or lockout findings, and enter a justified disposition. If the activity matches the authorized exercise, close the Sentinel incident as <em>Benign positive — Suspicious but expected</em>, not a false positive. Otherwise leave it active and escalate.</p>",
                   "type": 1,
                   "itilcategories_id": 0,
-                  "priority": "@if(equals(triggerBody()?['object']?['properties']?['severity'], 'High'), 4, if(equals(triggerBody()?['object']?['properties']?['severity'], 'Medium'), 3, 2))",
-                  "users_id_recipient": 7
+                  "priority": "@if(equals(triggerBody()?['object']?['properties']?['severity'], 'High'), 4, if(equals(triggerBody()?['object']?['properties']?['severity'], 'Medium'), 3, 2))"
                 }
               },
               "retryPolicy": {
@@ -378,8 +425,7 @@
                     "content": "<h2>SOC Investigation Case</h2>\n<h3>Incident Summary</h3>\n<p>Microsoft Sentinel detected activity requiring review: <strong>@{replace(replace(replace(string(triggerBody()?['object']?['properties']?['title']), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</strong>.</p>\n<ul>\n<li><strong>Sentinel incident:</strong> @{string(triggerBody()?['object']?['properties']?['incidentNumber'])} — @{coalesce(triggerBody()?['object']?['name'], last(split(coalesce(triggerBody()?['object']?['id'], ''), '/')))}</li>\n<li><strong>Severity:</strong> @{triggerBody()?['object']?['properties']?['severity']}</li>\n<li><strong>Detection window (UTC):</strong> @{triggerBody()?['object']?['properties']?['firstActivityTimeUtc']} to @{triggerBody()?['object']?['properties']?['lastActivityTimeUtc']}</li>\n<li><strong>Observed activity (UTC):</strong> @{body('Query_Commerce_Evidence')?['tables']?[0]?['rows']?[0]?[0]} to @{body('Query_Commerce_Evidence')?['tables']?[0]?['rows']?[0]?[1]}</li>\n<li><strong>Affected asset:</strong> @{body('Query_Commerce_Evidence')?['tables']?[0]?['rows']?[0]?[3]}</li>\n<li><strong>Correlation ID:</strong> @{body('Query_Commerce_Evidence')?['tables']?[0]?['rows']?[0]?[2]}</li>\n<li><strong>Observed source:</strong> @{replace(replace(replace(string(body('Query_Commerce_Evidence')?['tables']?[0]?['rows']?[0]?[5]), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')}</li>\n</ul>\n<p><a href=\"@{triggerBody()?['object']?['properties']?['incidentUrl']}\">Open Sentinel incident</a><br><a href=\"https://portal.azure.com/#@${tenant_id}/resource${workspace_id}/overview\">Open the scoped Log Analytics workspace</a></p>\n<h3>Investigation Objective</h3>\n<p>Establish the activity, affected identities and resources, and potential impact. Determine the appropriate classification and response.</p>\n<h3>Investigation Steps</h3>\n<ol><li>Review the Sentinel alert, severity, entities, and timeline.</li><li>Use Log Analytics to correlate the account, requests, outcomes, and activity times.</li><li>Assess control effectiveness, scope, and potential impact.</li><li>Record evidence, recommend any containment, and decide whether to escalate.</li></ol>\n<h3>Definition of Done</h3>\n<p>Document the timeline, evidence links, affected entities, classification, confidence, response recommendations, and escalation or closure justification. Keep the case open when the evidence is inconclusive.</p>",
                     "type": 1,
                     "itilcategories_id": 0,
-                    "priority": "@if(equals(triggerBody()?['object']?['properties']?['severity'], 'High'), 4, if(equals(triggerBody()?['object']?['properties']?['severity'], 'Medium'), 3, 2))",
-                    "users_id_recipient": 7
+                    "priority": "@if(equals(triggerBody()?['object']?['properties']?['severity'], 'High'), 4, if(equals(triggerBody()?['object']?['properties']?['severity'], 'Medium'), 3, 2))"
                   }
                 },
                 "retryPolicy": {
