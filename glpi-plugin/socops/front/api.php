@@ -1,6 +1,5 @@
 <?php
 use GlpiPlugin\Socops\TicketRepository;
-use Ticket;
 
 require_once dirname(__DIR__, 3) . '/inc/includes.php';
 
