@@ -47,7 +47,9 @@ are rendered only when the ticket contains HTTPS links to portal.azure.com.
 
 The React + TypeScript interface lives in glpi-plugin/socops/ui; Vite builds
 hashed static assets into glpi-plugin/socops/public, which is copied into the
-GLPI image. To validate the UI locally, run:
+GLPI image. The dashboard and JSON API use GLPI 11 plugin controllers, with
+the existing-session API route at /plugins/socops/api. To validate the UI
+locally, run:
 
     cd glpi-plugin/socops/ui
     npm ci --no-audit --no-fund

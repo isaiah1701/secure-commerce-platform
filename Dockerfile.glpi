@@ -23,14 +23,13 @@ RUN chmod 0444 /opt/glpi-theme/soc_ops.scss
 COPY glpi-plugin/socops/setup.php /var/www/glpi/plugins/socops/setup.php
 COPY glpi-plugin/socops/hook.php /var/www/glpi/plugins/socops/hook.php
 COPY glpi-plugin/socops/src/ /var/www/glpi/plugins/socops/src/
-COPY glpi-plugin/socops/front/ /var/www/glpi/plugins/socops/front/
 COPY --from=socops-ui /src/glpi-plugin/socops/public/ /var/www/glpi/plugins/socops/public/
 RUN php -l /var/www/glpi/plugins/socops/setup.php \
     && php -l /var/www/glpi/plugins/socops/hook.php \
     && php -l /var/www/glpi/plugins/socops/src/Menu.php \
     && php -l /var/www/glpi/plugins/socops/src/TicketRepository.php \
-    && php -l /var/www/glpi/plugins/socops/front/dashboard.php \
-    && php -l /var/www/glpi/plugins/socops/front/api.php
+    && php -l /var/www/glpi/plugins/socops/src/Controller/DashboardController.php \
+    && php -l /var/www/glpi/plugins/socops/src/Controller/ApiController.php
 COPY glpi-entrypoint.sh /opt/glpi/azure-entrypoint.sh
 RUN chmod 0555 /opt/glpi/azure-entrypoint.sh
 ENTRYPOINT ["/opt/glpi/azure-entrypoint.sh"]

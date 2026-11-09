@@ -23,7 +23,7 @@ final class Menu extends CommonDBTM
             return [];
         }
 
-        $workspace = '/plugins/socops/front/dashboard.php';
+        $workspace = '/plugins/socops/dashboard';
 
         return [
             'title' => self::getTypeName(),
