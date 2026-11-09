@@ -54,3 +54,175 @@
 :root[data-glpi-theme="soc_ops"] .btn {
     border-radius: 0.55rem;
 }
+
+/* Keep the ticket workflow comfortable on narrow touch screens. */
+@media (max-width: 767.98px) {
+    #itil-object-container,
+    #itil-object-container * {
+        box-sizing: border-box;
+    }
+
+    #itil-object-container .itil-object {
+        row-gap: 0.75rem;
+    }
+
+    #itil-object-container .itil-left-side,
+    #itil-object-container .itil-right-side {
+        min-width: 0;
+        padding-inline: 0.75rem !important;
+    }
+
+    #itil-object-container .itil-right-side {
+        padding-block: 0.75rem !important;
+        border: 1px solid #dfe7ef;
+        border-radius: 0.85rem;
+        background: var(--tblr-bg-surface);
+    }
+
+    #itil-object-container .itil-object-fields .accordion-button {
+        min-height: 48px;
+        padding: 0.75rem 0.875rem;
+        gap: 0.5rem;
+    }
+
+    #itil-object-container .itil-object-fields .accordion-body {
+        padding: 0.75rem;
+    }
+
+    #itil-object-container .itil-timeline {
+        width: 100%;
+        min-width: 0;
+        align-items: stretch !important;
+    }
+
+    #itil-object-container .timeline-item {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        margin-inline: 0 !important;
+    }
+
+    #itil-object-container .timeline-item > .row {
+        width: 100%;
+        margin-inline: 0 !important;
+        flex-wrap: nowrap;
+        align-items: flex-start;
+        --tblr-gutter-x: 0.5rem;
+    }
+
+    #itil-object-container .timeline-item > .row > .col-auto {
+        flex: 0 0 auto;
+        margin-inline: 0 !important;
+        padding-inline: 0 0.5rem;
+    }
+
+    #itil-object-container .timeline-item > .row > .content-part,
+    #itil-object-container .timeline-item > .row > .col-12.col-sm {
+        flex: 1 1 0%;
+        width: auto !important;
+        min-width: 0;
+        max-width: 100%;
+        padding-inline: 0;
+    }
+
+    #itil-object-container .timeline-content {
+        width: 100%;
+        min-width: 0;
+        margin-inline: 0 !important;
+    }
+
+    #itil-object-container .timeline-content .card-body {
+        padding: 0.875rem !important;
+    }
+
+    #itil-object-container .timeline-header,
+    #itil-object-container .timeline-header .creator {
+        min-width: 0;
+        flex-wrap: wrap;
+        overflow-wrap: anywhere;
+    }
+
+    #itil-object-container .read-only-content,
+    #itil-object-container .rich_text_container,
+    #itil-object-container .timeline-content {
+        overflow-wrap: anywhere;
+        word-break: normal;
+    }
+
+    #itil-object-container .read-only-content img,
+    #itil-object-container .read-only-content video,
+    #itil-object-container .read-only-content iframe {
+        max-width: 100%;
+        height: auto;
+    }
+
+    #itil-object-container .read-only-content table {
+        display: block;
+        max-width: 100%;
+        overflow-x: auto;
+    }
+
+    #itil-object-container :is(
+        .form-control,
+        .form-select,
+        .select2-selection,
+        .btn,
+        .accordion-button
+    ) {
+        min-height: 44px;
+    }
+
+    #itil-object-container :is(
+        input:not([type="checkbox"]),
+        select,
+        textarea,
+        .select2-selection
+    ) {
+        font-size: 16px !important;
+    }
+
+    #itil-object-container textarea {
+        min-height: 8rem;
+    }
+
+    #itil-object-container #itil-footer .buttons-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+        padding-inline: 0.75rem;
+    }
+
+    #itil-object-container #itil-footer .timeline-buttons,
+    #itil-object-container #itil-footer .form-buttons {
+        width: 100%;
+        max-width: none;
+        min-width: 0;
+        margin: 0 !important;
+        padding-inline: 0 !important;
+    }
+
+    #itil-object-container #itil-footer .timeline-buttons {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    #itil-object-container #itil-footer .form-buttons {
+        flex-wrap: wrap;
+        justify-content: flex-end !important;
+        gap: 0.5rem;
+    }
+
+    #itil-object-container #right-actions {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    #itil-object-container #right-actions .btn-square > span {
+        display: inline !important;
+    }
+
+    #itil-object-container :is(a, button, input, select, textarea, [tabindex]):focus-visible {
+        outline: 3px solid #0d6e7c;
+        outline-offset: 2px;
+    }
+}

@@ -13,6 +13,12 @@ as an explicit choice. The current theme preference is left unchanged by
 deployment. It uses a clean slate-and-teal interface and keeps GLPI's status
 colors intact.
 
+The ticket view also has a narrow-screen layout: ticket details and timeline use
+the available width, timeline entries and long evidence wrap, and the action bar
+stacks for touch use. Ticket controls keep a 44 px target and 16 px input text,
+and keyboard focus remains visible. These rules apply to both Aurora and SOC
+Ops without changing ticket data or user preferences.
+
 Changes to `Dockerfile.glpi` or `glpi-theme/` build and deploy only the GLPI
 container app through `.github/workflows/glpi-theme.yml`; the commerce app and
 infrastructure deployment are not part of this workflow.
