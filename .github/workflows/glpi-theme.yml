@@ -61,23 +61,41 @@ jobs:
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
       - name: Build and publish immutable GLPI image
-        env:
-          ACR_LOGIN_SERVER: ${{ vars.ACR_LOGIN_SERVER }}
-          IMAGE_TAG: ${{ github.sha }}
-        run: >-
-          az acr login --name "${{ vars.ACR_NAME }}" &&
-          docker build --pull --file Dockerfile.glpi
-          --tag "${ACR_LOGIN_SERVER}/glpi:${IMAGE_TAG}" . &&
-          docker push "${ACR_LOGIN_SERVER}/glpi:${IMAGE_TAG}"
+        run: |
+          current_image=$(az containerapp show \
+            --name "$GLPI_CONTAINER_APP_NAME" \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --query "properties.template.containers[0].image" \
+            --output tsv)
+          acr_login_server="${current_image%%/*}"
+          acr_name="${acr_login_server%%.*}"
+          if [[ -z "$acr_name" || -z "$acr_login_server" ]]; then
+            echo "Could not find the registry used by the current GLPI image"
+            exit 1
+          fi
+          az acr login --name "$acr_name"
+          docker build --pull --file Dockerfile.glpi \
+            --tag "${acr_login_server}/glpi:${GITHUB_SHA}" .
+          docker push "${acr_login_server}/glpi:${GITHUB_SHA}"
 
       - name: Deploy GLPI image only
         run: |
           revision_suffix="socops-${GITHUB_SHA::12}"
           revision_name="${GLPI_CONTAINER_APP_NAME}--${revision_suffix}"
+          current_image=$(az containerapp show \
+            --name "$GLPI_CONTAINER_APP_NAME" \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --query "properties.template.containers[0].image" \
+            --output tsv)
+          acr_login_server="${current_image%%/*}"
+          if [[ -z "$acr_login_server" ]]; then
+            echo "Could not find the registry used by the current GLPI image"
+            exit 1
+          fi
           az containerapp update \
             --name "$GLPI_CONTAINER_APP_NAME" \
             --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
-            --image "${{ vars.ACR_LOGIN_SERVER }}/glpi:${{ github.sha }}" \
+            --image "${acr_login_server}/glpi:${GITHUB_SHA}" \
             --revision-suffix "$revision_suffix"
 
           for attempt in {1..30}; do
