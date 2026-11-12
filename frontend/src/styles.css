@@ -221,7 +221,6 @@ button { cursor: pointer; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .form-foot { text-align: center !important; font-size: 11px !important; }
 .form-foot a { color: var(--coral-dark); font-weight: 800; }
-.demo-note { margin-top: 18px; padding: 14px; color: #4c5d67; background: var(--mint); border-radius: 12px; font-size: 10px; line-height: 1.7; }
 
 .cart-layout, .checkout-grid { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 35px; margin-top: 40px; }
 .cart-list { padding: 0 22px; background: #fff; border-radius: 20px; }
