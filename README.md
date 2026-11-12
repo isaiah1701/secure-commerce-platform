@@ -27,6 +27,10 @@ The initial migration and idempotent seed run automatically when the backend con
 | Customer | `customer@example.com` | `DemoPass!2026` |
 | Admin | `admin@example.com` | `AdminPass!2026` |
 
+The local seed also creates eight virtual customer accounts for directory and investigation exercises. They all use the configured `DEMO_PASSWORD`:
+
+`virtual.alex.rivera@example.com`, `virtual.jamie.chen@example.com`, `virtual.taylor.patel@example.com`, `virtual.morgan.reed@example.com`, `virtual.riley.brooks@example.com`, `virtual.jordan.ali@example.com`, `virtual.casey.wong@example.com`, `virtual.sam.taylor@example.com`.
+
 These defaults are intentionally public and must not be used outside local development. To customize credentials and secrets, copy `.env.example` to `.env`, replace `JWT_SECRET`, `POSTGRES_PASSWORD`, and the demo passwords, then start Compose.
 
 ```bash

@@ -30,6 +30,17 @@ PRODUCTS = [
     ("Travel Organizer", "Compact recycled-fabric pouch for cables and essentials.", "Accessories", "28.00", 45, "https://images.unsplash.com/photo-1553531889-56d5b8272d2a?w=900"),
 ]
 
+VIRTUAL_CUSTOMERS = [
+    ("virtual.alex.rivera@example.com", "Alex", "Rivera"),
+    ("virtual.jamie.chen@example.com", "Jamie", "Chen"),
+    ("virtual.taylor.patel@example.com", "Taylor", "Patel"),
+    ("virtual.morgan.reed@example.com", "Morgan", "Reed"),
+    ("virtual.riley.brooks@example.com", "Riley", "Brooks"),
+    ("virtual.jordan.ali@example.com", "Jordan", "Ali"),
+    ("virtual.casey.wong@example.com", "Casey", "Wong"),
+    ("virtual.sam.taylor@example.com", "Sam", "Taylor"),
+]
+
 
 def seed() -> None:
     with SessionLocal() as db:
@@ -39,17 +50,20 @@ def seed() -> None:
 
         demo_password = os.getenv("DEMO_PASSWORD", "DemoPass!2026")
         admin_password = os.getenv("ADMIN_PASSWORD", "AdminPass!2026")
-        for email, password, first, last, role in (
+        demo_users = [
             ("customer@example.com", demo_password, "Demo", "Customer", UserRole.customer),
             ("admin@example.com", admin_password, "Store", "Admin", UserRole.admin),
-        ):
+            *[(email, demo_password, first, last, UserRole.customer)
+              for email, first, last in VIRTUAL_CUSTOMERS],
+        ]
+        for email, password, first, last, role in demo_users:
             if not db.scalar(select(User).where(User.email == email)):
                 user = User(email=email, password_hash=hash_password(password), first_name=first, last_name=last, role=role)
                 db.add(user)
                 db.flush()
                 db.add(Cart(user_id=user.id))
         db.commit()
-    print("Seed complete: products and local demo accounts are ready.")
+    print("Seed complete: products and 10 local demo accounts are ready.")
 
 
 if __name__ == "__main__":
